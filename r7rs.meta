@@ -1,0 +1,7 @@
+((synopsis "R7RS compatibility")
+ (author "The Chicken Team")
+ (category lang-exts)
+ (license "BSD")
+ (depends)
+ (test-depends)
+ (foreign-depends))

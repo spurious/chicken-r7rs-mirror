@@ -1,0 +1,7 @@
+(compile -d0 -O2 -J -s r7rs.scm)
+(compile -d0 -O2 -s r7rs.import.scm)
+
+(install-extension
+ 'r7rs
+ '("r7rs.so" "r7rs.import.so")
+ '((version "0.0.1")))
