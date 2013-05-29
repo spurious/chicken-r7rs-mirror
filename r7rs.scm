@@ -21,6 +21,6 @@
             ((#\t #\T)
              (read-asserted-ci-symbol port '(t true) "invalid `true' read syntax")
              #t)
-            (else (old-hook))))))
+            (else (old-hook char port))))))
 
 )
