@@ -12,6 +12,10 @@
  error-object-irritants
  read-error?
  file-error?
+ ;; Input & output
+ call-with-port
+ close-port
+ eof-object
  ;; System interface
  command-line
  exit
@@ -160,6 +164,23 @@
      (lambda (obj)
        (and (exn? obj)
             (file? obj))))))
+
+;;;
+;;; 6.13. Input and Output
+;;;
+
+(define (call-with-port port proc)
+  (dynamic-wind void (lambda () (proc port)) (lambda () (close-port port))))
+
+(define (close-port port)
+  (cond ((input-port? port)
+         (close-input-port port))
+        ((output-port? port)
+         (close-output-port port))
+        (else
+         (error 'close-port "not a port" port))))
+
+(define (eof-object) #!eof)
 
 ;;;
 ;;; 6.14. System interface.
