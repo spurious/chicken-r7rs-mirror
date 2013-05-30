@@ -11,6 +11,7 @@
  file-error?
  ; TODO guard
  ;; System interface
+ command-line
  exit
  emergency-exit
  )
@@ -67,6 +68,14 @@
 ;;;
 
 ;; Should these go in a separate module (process-context)?
+
+(define command-line
+  (let ((command-line #f)
+        (arguments (command-line-arguments)))
+    (lambda ()
+      (unless command-line
+        (set! command-line (cons (program-name) arguments)))
+      command-line)))
 
 (define (->exit-status obj)
   (cond ((integer? obj) obj)
