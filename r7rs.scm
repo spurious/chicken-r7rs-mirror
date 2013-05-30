@@ -10,9 +10,12 @@
  read-error?
  file-error?
  ; TODO guard
+ ;; System interface
+ exit
+ emergency-exit
  )
 
-(import chicken scheme)
+(import chicken scheme foreign)
 (use srfi-13)
 
 (define (read-asserted-ci-symbol port valid-symbols error-message)
@@ -58,5 +61,40 @@
      (lambda (obj)
        (and (exn? obj)
             (file? obj))))))
+
+;;;
+;;; 6.14. System interface.
+;;;
+
+;; Should these go in a separate module (process-context)?
+
+(define (->exit-status obj)
+  (cond ((integer? obj) obj)
+        ((eq? obj #f) 1)
+        (else 0)))
+
+(define exit
+  (case-lambda
+    (()
+     (exit 0))
+    ((obj)
+     (##sys#cleanup-before-exit)
+     ;; ##sys#dynamic-unwind is hidden, have to unwind manually.
+     ; (##sys#dynamic-unwind '() (length ##sys#dynamic-winds))
+     (let unwind ()
+       (unless (null? ##sys#dynamic-winds)
+         (let ((after (cdar ##sys#dynamic-winds)))
+           (set! ##sys#dynamic-winds (cdr ##sys#dynamic-winds))
+           (after)
+           (unwind))))
+     (##core#inline "C_exit_runtime" (->exit-status obj)))))
+
+(define emergency-exit
+  (case-lambda
+    (()
+     (emergency-exit 0))
+    ((obj)
+     (##sys#cleanup-before-exit)
+     ((foreign-lambda void "_exit" int) (->exit-status obj)))))
 
 )
