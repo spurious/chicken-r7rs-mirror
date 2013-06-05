@@ -8,3 +8,8 @@ NOTES
 
 * "export" does not support "(rename ...)" specifier yet.
   - this needs extensions to the core module system.
+
+* "(import SYMBOL)" is currently allowed. Should it not?
+
+* Redefinition of "import" causes "re-importing" warnings.
+  - The warnings could be removed in core, it's usefulness is not completely clear.

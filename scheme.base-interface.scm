@@ -72,7 +72,9 @@
   guard
   #|
   if
+  |#
   import
+  #|
   ;; import-for-syntax   XXX should we?
   include include-ci
   input-port-open? output-port-open?

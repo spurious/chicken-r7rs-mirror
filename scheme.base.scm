@@ -9,6 +9,19 @@
 (import-for-syntax r7rs-compile-time)
 
 
+(define-syntax import
+  (er-macro-transformer
+   (lambda (x r c)
+     (##sys#expand-import 
+      (cons (car x)
+	    (map (lambda (spec)
+		   (fixup-import/export-spec (strip-syntax spec) 'import))
+		 (cdr x)))
+      r c
+      ##sys#current-environment ##sys#macro-environment
+      #f #f 'import) ) ) )
+
+
 ;;;
 ;;; 4.2.1. Conditionals
 ;;;

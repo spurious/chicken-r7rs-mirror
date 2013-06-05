@@ -10,26 +10,22 @@
    (require-library r7rs-compile-time numbers))
   (import-for-syntax r7rs-compile-time matchable)
 
-(use srfi-13)				;XXX get rid of this! (used for "string-downcase"?)
-
 (require-library scheme.base)
-
-(define (read-asserted-ci-symbol port valid-symbols error-message)
-  (let ((sym (##sys#read port ##sys#default-read-info-hook)))
-    (or (and (symbol? sym)
-             (memq (string->symbol (string-downcase (symbol->string sym))) valid-symbols))
-        (##sys#read-error port error-message sym))))
 
 (let ((old-hook ##sys#user-read-hook))
   (set! ##sys#user-read-hook
         (lambda (char port)
+	  (define (fail tok)
+	    (##sys#read-error port "invalid boolean literal syntax" tok))
           (case char
-            ((#\f #\F)
-             (read-asserted-ci-symbol port '(f false) "invalid `false' read syntax")
-             #f)
-            ((#\t #\T)
-             (read-asserted-ci-symbol port '(t true) "invalid `true' read syntax")
-             #t)
+            ((#\f #\F #\t #\T)
+	     (let ((sym (##sys#read port ##sys#default-read-info-hook)))
+	       (if (not (symbol? sym))
+		   (fail sym)
+		   (let ((str (symbol->string sym)))
+		     (cond ((or (string-ci=? "t" str) (string-ci=? "true" str)) #t)
+			   ((or (string-ci=? "f" str) (string-ci=? "false" str)) #f)
+			   (else (fail sym)))))))
             (else (old-hook char port))))))
 
 ;;;
