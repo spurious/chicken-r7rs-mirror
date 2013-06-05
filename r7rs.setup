@@ -1,7 +1,37 @@
-(compile -d0 -O2 -J -s r7rs.scm)
-(compile -d0 -O2 -s r7rs.import.scm)
+(use make)
+
+
+(define scheme-modules
+  '("base" "process-context"))		;XXX
+
+(make (("r7rs-compile-time.so" ("r7rs-compile-time.scm" "r7rs-compile-time-module.scm")
+	(compile -s -O3 -d1 r7rs-compile-time-module.scm -J -o r7rs-compile-time.so)
+	(compile -s -O3 -d0 r7rs-compile-time.import.scm))
+       ("scheme.base.so" ("scheme.base.scm" "scheme.base-interface.scm")
+	(compile -s -O3 -d1 scheme.base.scm -J)
+	(compile -s -O3 -d0 scheme.base.import.scm)))
+  '("r7rs-compile-time.so" "scheme.base.so"))
+
+(for-each
+ (lambda (m)
+   (let* ((mname (string-append "scheme." m))
+	  (so (string-append mname ".so"))
+	  (scm (string-append mname ".scm")))
+     (make/proc (list (list so (list scm)
+			    (lambda ()
+			      (compile -s -O3 -d1 ,scm -J)
+			      (compile -s -O3 -d0 ,(string-append mname ".import.scm")))))
+		(list so))))
+ scheme-modules)
+
+(make (("r7rs.so" ("r7rs.scm" "scheme.base-interface.scm")
+	(compile -s -O3 -d0 r7rs.scm -J)
+	(compile -s -O3 -d0 r7rs.import.scm))))
 
 (install-extension
  'r7rs
- '("r7rs.so" "r7rs.import.so")
+ '("r7rs.so" "r7rs.import.so" 
+   "r7rs-compile-time.so" "r7rs-compile-time.import.so"
+   "scheme.base.so" "scheme.base.import.so"
+   "scheme.process-context.so" "scheme.process-context.import.so")
  '((version "0.0.1")))
