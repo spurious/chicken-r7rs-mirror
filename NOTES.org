@@ -1,0 +1,10 @@
+NOTES
+
+
+* Redefinition of "import" may be tricky, as it is implicit and not in any module.
+  - possible reimplement using core functionality.
+
+* Use of "define-values" is elegant but loses lambda-info for the defined procedures.
+
+* "export" does not support "(rename ...)" specifier yet.
+  - this needs extensions to the core module system.
