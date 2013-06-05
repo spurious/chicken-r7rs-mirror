@@ -54,12 +54,13 @@
 	   (loop more)))
       (else (fail "invalid \"cond-expand\" form")))))
 
-(define (fixup-import/export-spec spec loc)
+(define (fixup-import/export-spec spec loc) ; expects spec to be stripped
   (match spec
     (((and head (or 'only 'except 'rename 'prefix)) name . more)
      (cons* head (fixup-import/export-spec name loc) more))
     ((name ...)
      (parse-library-name name loc))
+    ((? symbol? spec) spec)
     (_ (syntax-error loc "invalid import/export specifier" spec))))
 
 (define (current-source-filename)
