@@ -60,24 +60,53 @@
 
 ;; call-with-port is not supposed to close its port when leaving the
 ;; dynamic extent, only on normal return.
-(test-group "ports"
-  (let*-values (((jump-back? jump!) (call/cc (lambda (k) (values #f k))))
-                (_ (and jump-back? (jump! (void))))
-                ((string)
-                 (call-with-output-string
-                  (lambda (the-string-port)
-                    (test "call-with-port returns all values yielded by proc"
-                          '(1 2 3)
-                          (receive (call-with-port
-                                    the-string-port
-                                    (lambda (p)
-                                      (display "foo" p)
-                                      ;; Leave the dynamic extent momentarily;
-                                      ;; jump! will immediately return with #t.
-                                      (call/cc (lambda (k) (jump! #t k)))
-                                      (display "bar" p)
-                                      (values 1 2 3)))))
-                    (test-assert "call-with-port closes the port on normal return"
-                                 (port-closed? the-string-port))))))
-    (test "call-with-port passes the port correctly and allows temporary escapes"
-          "foobar" string)))
+;;
+;; XXX TODO: Rewrite in terms of SRFI-6 string port interface, so
+;; no call-with-*-string, but use get-output-string and such!
+;; Do this when it's clear how to re-export Chicken stuff.
+(test-group "string ports"
+  (receive (jump-back? jump!)
+      (call/cc (lambda (k) (values #f k)))
+    (when jump-back? (jump! (void)))
+    (let ((string (call-with-output-string
+                   (lambda (the-string-port)
+                     (receive (one two three)
+                         (call-with-port the-string-port
+                          (lambda (p)
+                            (display "foo" p)
+                            ;; Leave the dynamic extent momentarily;
+                            ;; jump! will immediately return with #t.
+                            (call/cc (lambda (k) (jump! #t k)))
+                            (test-assert "Port is still open after excursion"
+                                         (output-port-open? the-string-port))
+                            (display "bar" p)
+                            (values 1 2 3)))
+                       (test "call-with-port returns all values yielded by proc"
+                             '(1 2 3)
+                             (list one two three)))
+                     (test-assert "call-with-port closes the port on normal return"
+                                  (not (output-port-open? the-string-port)))
+                     (test-assert "It's ok to close output ports that are closed"
+                                  (close-port the-string-port))
+                     (test-error "input-port-open? fails on output ports"
+                                 (input-port-open? the-string-port))))))
+      (test "call-with-port passes the port correctly and allows temporary escapes"
+            "foobar" string)))
+
+  (call-with-input-string "foo"
+    (lambda (the-string-port)
+      (test-error "output-port-open? fails on input ports"
+                  (output-port-open? the-string-port))
+      (test-assert "Initially, string port is open"
+                   (input-port-open? the-string-port))
+      (test "Reading from string delivers the data"
+            'foo (read the-string-port))
+      (test "After reading all, we get the eof-object"
+            (eof-object) (read the-string-port))
+      (test-assert "Port is still open after all reads"
+                   (input-port-open? the-string-port))
+      (close-port the-string-port)
+      (test-assert "Port is no longer open after closing it"
+                   (not (input-port-open? the-string-port)))
+      (test-assert "It's ok to close input ports that are already closed"
+                   (close-port the-string-port)))))
