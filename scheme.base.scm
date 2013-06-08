@@ -161,7 +161,10 @@
 ;;;
 
 (define (call-with-port port proc)
-  (dynamic-wind void (lambda () (proc port)) (lambda () (close-port port))))
+  (receive ret
+      (proc port)
+    (close-port port)
+    (apply values ret)))
 
 (define (close-port port)
   (cond ((input-port? port)
