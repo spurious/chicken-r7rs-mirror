@@ -14,8 +14,6 @@
 ;;; 6.14. System interface.
 ;;;
 
-;; Should these go in a separate module (process-context)?
-
 (define command-line
   (let ((command-line #f)
         (arguments (command-line-arguments)))
