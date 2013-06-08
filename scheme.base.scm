@@ -174,6 +174,13 @@
         (else
          (error 'close-port "not a port" port))))
 
+(define (output-port-open? port)
+  (##sys#check-output-port port #f 'output-port-open?)
+  (not (port-closed? port)))
+(define (input-port-open? port)
+  (##sys#check-input-port port #f 'input-port-open?)
+  (not (port-closed? port)))
+
 (define (eof-object) #!eof)
 
 

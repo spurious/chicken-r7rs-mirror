@@ -25,7 +25,10 @@
   char->integer integer->char
   char<? char>? char<=? char>=?
   char?
-  close-input-port close-output-port close-port
+  close-input-port close-output-port
+  |#
+  close-port
+  #|
   complex?
   cond
   |#
@@ -77,7 +80,9 @@
   #|
   ;; import-for-syntax   XXX should we?
   include include-ci
+  |#
   input-port-open? output-port-open?
+  #|
   input-port? output-port?
   integer?
   lambda
