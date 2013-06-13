@@ -3,6 +3,8 @@
 (define (read-from-string s)
   (with-input-from-string s read))
 
+(test-begin "r7rs tests")
+
 (test-group "long boolean literals"
  (test #t (read-from-string "#t"))
  (test #f (read-from-string "#f"))
@@ -28,13 +30,16 @@
                (lambda () (+ 1 (raise 'an-error)))))
   (test-error "with-exception-handler (raise)"
               (with-exception-handler
-               (lambda (e) 'ignore)
+               (lambda (e) (raise 'another-error))
                (lambda () (+ 1 (raise 'an-error)))))
   (test "with-exception-handler (raise-continuable)"
-        65
-        (with-exception-handler
-         (lambda (e) 42)
-         (lambda () (+ (raise-continuable "should be a number") 23))))
+        '("should be a number" 65)
+        (let* ((exception-object #f)
+               (return-value 
+                (with-exception-handler
+                 (lambda (e) (set! exception-object e) 42)
+                 (lambda () (+ (raise-continuable "should be a number") 23)))))
+          (list exception-object return-value)))
   (test "error-object? (#f)" #f (error-object? 'no))
   (test "error-object? (#t)" #t (error-object? (catch (car '()))))
   (test "error-object-message" "fubar" (error-object-message (catch (error "fubar"))))
@@ -110,3 +115,7 @@
                    (not (input-port-open? the-string-port)))
       (test-assert "It's ok to close input ports that are already closed"
                    (close-port the-string-port)))))
+
+(test-end "r7rs tests")
+
+(test-exit)
