@@ -1,6 +1,6 @@
 (module scheme.base ()
 
-(import (except scheme cond-expand))
+(import (except scheme syntax-rules cond-expand))
 (import (except chicken with-exception-handler raise))
 
 (include "scheme.base-interface.scm")
@@ -95,6 +95,10 @@
                   (lambda ()
                     (apply values args))))))))))))))
 
+;;;
+;;; 5.4. Syntax definitions
+;;;
+(include "synrules.scm")
 
 ;;;
 ;;; 6.11. Exceptions

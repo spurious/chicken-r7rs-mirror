@@ -1,5 +1,5 @@
+;; -*- Scheme -*-
 (use make)
-
 
 (define scheme-modules
   '("base" "process-context"))		;XXX
@@ -7,7 +7,8 @@
 (make (("r7rs-compile-time.so" ("r7rs-compile-time.scm" "r7rs-compile-time-module.scm")
 	(compile -s -O3 -d1 r7rs-compile-time-module.scm -J -o r7rs-compile-time.so)
 	(compile -s -O3 -d0 r7rs-compile-time.import.scm))
-       ("scheme.base.so" ("scheme.base.scm" "scheme.base-interface.scm")
+       ("scheme.base.so" ("scheme.base.scm" "scheme.base-interface.scm"
+                          "synrules.scm")
 	(compile -s -O3 -d1 scheme.base.scm -J)
 	(compile -s -O3 -d0 scheme.base.import.scm)))
   '("r7rs-compile-time.so" "scheme.base.so"))
