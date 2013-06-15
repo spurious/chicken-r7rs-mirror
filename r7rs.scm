@@ -1,10 +1,10 @@
 (module r7rs (define-library)
 
-  (import scheme)			;XXX except ...
+  (import (except scheme syntax-rules))		;XXX except ...
   (import chicken)			;XXX except ...
   (import numbers)
   (import scheme.base)
-  (include "scheme.base-interface.scm") 
+  (include "scheme.base-interface.scm")
 
   (begin-for-syntax
    (require-library r7rs-compile-time numbers))

@@ -38,7 +38,9 @@
   current-input-port current-output-port current-error-port
   define
   define-record-type
+  |#
   define-syntax
+  #|
   define-values
   denominator numerator
   do
@@ -78,7 +80,7 @@
   |#
   import
   #|
-  ;; import-for-syntax   XXX should we?
+  ;; import-for-syntax   XXX should we?  Probably not, it's not in r7rs...
   include include-ci
   |#
   input-port-open? output-port-open?
@@ -90,8 +92,10 @@
   let let*
   letrec letrec*
   let-values let*-values
+  |#
   let-syntax
   letrec-syntax
+  #|
   library                    ; for "cond-expand"
   list
   list-copy
@@ -161,7 +165,9 @@
   symbol=?
   symbol?
   syntax-error
-  ;syntax-rules   XXX???
+  |#
+  syntax-rules
+  #|
   textual-port?
   truncate
   truncate-quotient truncate-remainder
