@@ -1,8 +1,10 @@
 ;; -*- Scheme -*-
-(use make)
+
+
+(use make srfi-1)
 
 (define scheme-modules
-  '("base" "process-context"))		;XXX
+  '("base" "process-context" "eval"))		;XXX
 
 (make (("r7rs-compile-time.so" ("r7rs-compile-time.scm" "r7rs-compile-time-module.scm")
 	(compile -s -O3 -d1 r7rs-compile-time-module.scm -J -o r7rs-compile-time.so)
@@ -31,8 +33,11 @@
 
 (install-extension
  'r7rs
- '("r7rs.so" "r7rs.import.so" 
+ `("r7rs.so" "r7rs.import.so" 
    "r7rs-compile-time.so" "r7rs-compile-time.import.so"
-   "scheme.base.so" "scheme.base.import.so"
-   "scheme.process-context.so" "scheme.process-context.import.so")
+   ,@(append-map
+      (lambda (mod)
+	(list (string-append "scheme." mod ".so")
+	      (string-append "scheme." mod ".import.so")))
+      scheme-modules))
  '((version "0.0.1")))
