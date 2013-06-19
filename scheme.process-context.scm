@@ -14,6 +14,10 @@
 ;;; 6.14. System interface.
 ;;;
 
+(: command-line (-> (list-of string)))
+(: exit (* -> noreturn))
+(: emergency-exit (* -> noreturn))
+
 (define command-line
   (let ((command-line #f)
         (arguments (command-line-arguments)))

@@ -4,14 +4,14 @@
 (use make srfi-1)
 
 (define scheme-modules
-  '("base" "process-context" "eval"))		;XXX
+  '("process-context" "eval"))		;XXX
 
 (make (("r7rs-compile-time.so" ("r7rs-compile-time.scm" "r7rs-compile-time-module.scm")
 	(compile -s -O3 -d1 r7rs-compile-time-module.scm -J -o r7rs-compile-time.so)
 	(compile -s -O3 -d0 r7rs-compile-time.import.scm))
        ("scheme.base.so" ("scheme.base.scm" "scheme.base-interface.scm"
                           "synrules.scm")
-	(compile -s -O3 -d1 scheme.base.scm -J)
+	(compile -s -O3 -d1 scheme.base.scm -J -emit-type-file scheme.base.types)
 	(compile -s -O3 -d0 scheme.base.import.scm)))
   '("r7rs-compile-time.so" "scheme.base.so"))
 
@@ -22,7 +22,7 @@
 	  (scm (string-append mname ".scm")))
      (make/proc (list (list so (list scm)
 			    (lambda ()
-			      (compile -s -O3 -d1 ,scm -J)
+			      (compile -s -O3 -d1 ,scm -J -emit-type-file ,(string-append mname ".types"))
 			      (compile -s -O3 -d0 ,(string-append mname ".import.scm")))))
 		(list so))))
  scheme-modules)
@@ -35,9 +35,11 @@
  'r7rs
  `("r7rs.so" "r7rs.import.so" 
    "r7rs-compile-time.so" "r7rs-compile-time.import.so"
+   "scheme.base.so" "scheme.base.import.so" "scheme.base.types"
    ,@(append-map
       (lambda (mod)
 	(list (string-append "scheme." mod ".so")
-	      (string-append "scheme." mod ".import.so")))
+	      (string-append "scheme." mod ".import.so")
+	      (string-append "scheme." mod ".types")))
       scheme-modules))
  '((version "0.0.1")))
