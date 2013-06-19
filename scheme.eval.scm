@@ -8,6 +8,8 @@
 ;;; 6.12. Environments and evaluation
 ;;;
 
+  (: environment (list -> (struct environment)))
+
   (define (environment . specs)
     (let ((name (gensym "environment-module-")))
       ;; create module...

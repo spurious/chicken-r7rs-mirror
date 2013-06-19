@@ -104,6 +104,10 @@
 ;;; 6.11. Exceptions
 ;;;
 
+(: with-exception-handler ((* -> . *) (-> . *) -> . *))
+(: raise (* -> noreturn))
+(: raise-continuable (* -> . *))
+
 ;; XXX TODO: This is not threadsafe!
 (define-values (with-exception-handler raise raise-continuable)
   (let ((exception-handlers
@@ -145,9 +149,16 @@
         (lambda ()
           ((cadr exception-handlers) obj)))))))
 
+(: error-object? (* -> boolean : (struct condition)))
+(: error-object-message ((struct condition) -> string))
+(: error-object-irritants ((struct condition) -> list))
+
 (define error-object? condition?)
 (define error-object-message (condition-property-accessor 'exn 'message))
 (define error-object-irritants (condition-property-accessor 'exn 'arguments))
+
+(: read-error? (* -> boolean))
+(: file-error? (* -> boolean))
 
 (define-values (read-error? file-error?)
   (let ((exn?    (condition-predicate 'exn))
@@ -169,6 +180,12 @@
 ;;;
 ;;; 6.13. Input and Output
 ;;;
+
+(: call-with-port (port (port -> . *) -> . *))
+(: close-port (port -> void))
+(: output-port-open? (output-port -> boolean))
+(: input-port-open? (input-port -> boolean))
+(: eof-object (-> eof))
 
 (define (call-with-port port proc)
   (receive ret
