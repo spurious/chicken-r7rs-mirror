@@ -4,7 +4,7 @@
 (use make srfi-1)
 
 (define scheme-modules
-  '("process-context" "eval"))		;XXX
+  '("process-context" "eval" "cxr" "complex" "inexact" "load"))		;XXX
 
 (make (("r7rs-compile-time.so" ("r7rs-compile-time.scm" "r7rs-compile-time-module.scm")
 	(compile -s -O3 -d1 r7rs-compile-time-module.scm -J -o r7rs-compile-time.so)
