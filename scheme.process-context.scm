@@ -14,7 +14,7 @@
 ;;; 6.14. System interface.
 ;;;
 
-(: command-line (--> (list-of string)))
+(: command-line (-> (list-of string)))
 (: exit (* -> noreturn))
 (: emergency-exit (* -> noreturn))
 
