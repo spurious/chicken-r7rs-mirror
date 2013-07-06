@@ -100,6 +100,28 @@
 ;;;
 (include "synrules.scm")
 
+
+;;;
+;;; 6.3 Booleans
+;;;
+
+;(: boolean=? ((procedure #:enforce) (boolean boolean #!rest boolean) boolean))
+(: boolean=? (boolean boolean #!rest boolean -> boolean))
+
+(define (boolean=? b1 b2 . rest)
+  ;; Loop across all args, checking for booleans.  Don't shortcut and
+  ;; stop when we find nonequality.
+  (let lp ((b1 b1)
+           (b2 b2)
+           (rest rest)
+           (result (eq? b1 b2)))
+    (##sys#check-boolean b1 'boolean=?)
+    (##sys#check-boolean b2 'boolean=?)
+    (if (null? rest)
+        (and result (eq? b1 b2))
+        (lp b2 (car rest) (cdr rest) (and result (eq? b1 b2))))))
+
+
 ;;;
 ;;; 6.11. Exceptions
 ;;;
@@ -209,6 +231,5 @@
   (not (port-closed? port)))
 
 (define (eof-object) #!eof)
-
 
 )
