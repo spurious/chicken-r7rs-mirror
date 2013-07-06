@@ -171,7 +171,7 @@
         (lambda ()
           ((cadr exception-handlers) obj)))))))
 
-(: error-object? (* -> boolean : (struct condition)))
+(: error-object? (* --> boolean : (struct condition)))
 (: error-object-message ((struct condition) -> string))
 (: error-object-irritants ((struct condition) -> list))
 
@@ -179,8 +179,8 @@
 (define error-object-message (condition-property-accessor 'exn 'message))
 (define error-object-irritants (condition-property-accessor 'exn 'arguments))
 
-(: read-error? (* -> boolean))
-(: file-error? (* -> boolean))
+(: read-error? (* --> boolean))
+(: file-error? (* --> boolean))
 
 (define-values (read-error? file-error?)
   (let ((exn?    (condition-predicate 'exn))
@@ -207,7 +207,7 @@
 (: close-port (port -> void))
 (: output-port-open? (output-port -> boolean))
 (: input-port-open? (input-port -> boolean))
-(: eof-object (-> eof))
+(: eof-object (--> eof))
 
 (define (call-with-port port proc)
   (receive ret
