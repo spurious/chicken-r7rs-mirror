@@ -109,13 +109,13 @@
 (: boolean=? (boolean boolean #!rest boolean -> boolean))
 
 (define (boolean=? b1 b2 . rest)
+  (##sys#check-boolean b1 'boolean=?)
   ;; Loop across all args, checking for booleans.  Don't shortcut and
   ;; stop when we find nonequality.
   (let lp ((b1 b1)
            (b2 b2)
            (rest rest)
            (result (eq? b1 b2)))
-    (##sys#check-boolean b1 'boolean=?)
     (##sys#check-boolean b2 'boolean=?)
     (if (null? rest)
         (and result (eq? b1 b2))
