@@ -9,7 +9,9 @@
   assoc assq assv
   begin
   binary-port?
+  |#
   boolean? boolean=?
+  #|
   bytevector-append bytevector-copy bytevector-copy!
   bytevector-length bytevector-u8-ref bytevector-u8-set!
   bytevector?
@@ -113,7 +115,9 @@
   modulo remainder
   negative? positive?
   newline
+  |#
   not
+  #|
   null?
   number->string string->number
   number?

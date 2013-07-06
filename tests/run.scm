@@ -17,6 +17,24 @@
  (test #f (read-from-string "#false"))
  (test-error (read-from-string "#faux")))
 
+(test-group "boolean=?"
+  (test #t (boolean=? #t #t))
+  (test #t (boolean=? #t #t #t #t))
+  (test #t (boolean=? #f #f))
+  (test #t (boolean=? #f #f #f #f))
+  (test #f (boolean=? #f #t))
+  (test #f (boolean=? #f #t #t #t))
+  (test #f (boolean=? #f #f #t #t))
+  (test #f (boolean=? #f #f #f #t))
+  (test #f (boolean=? #t #f #f #f))
+  (test #f (boolean=? #t #f #f #t))
+  (test #f (boolean=? #t #t #f #t))
+  (test #f (boolean=? #f #f #f #t))
+  (test #f (boolean=? #f #t #f #f))
+  (test-error (boolean=? #f))
+  (test-error (boolean=? #f 1))
+  (test-error "no shortcutting" (boolean=? #f #t 2)))
+
 (define-syntax catch
   (syntax-rules ()
     ((_ . body) (handle-exceptions e e . body))))
