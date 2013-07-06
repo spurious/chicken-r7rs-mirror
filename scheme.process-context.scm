@@ -14,17 +14,13 @@
 ;;; 6.14. System interface.
 ;;;
 
-(: command-line (-> (list-of string)))
+(: command-line (--> (list-of string)))
 (: exit (* -> noreturn))
 (: emergency-exit (* -> noreturn))
 
-(define command-line
-  (let ((command-line #f)
-        (arguments (command-line-arguments)))
-    (lambda ()
-      (unless command-line
-        (set! command-line (cons (program-name) arguments)))
-      command-line)))
+(define (command-line)
+  ;; Don't cache these; they may be parameterized at any time!
+  (cons (program-name) (command-line-arguments)))
 
 (define (->exit-status obj)
   (cond ((integer? obj) obj)
