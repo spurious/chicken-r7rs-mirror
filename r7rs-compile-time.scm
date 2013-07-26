@@ -128,7 +128,9 @@
 	      ,@(process-include-decls fnames)
 	      ,(parse-decls more)))
 	   ((('cond-expand decls ...) . more)
-	    (parse-decls (process-cond-expand decls)))
+            `(##core#begin
+              ,(parse-decls (process-cond-expand decls))
+	      ,(parse-decls more)))
 	   ((('begin code ...) . more)
 	    `(##core#begin 
 	      (##core#begin ,@code) 
