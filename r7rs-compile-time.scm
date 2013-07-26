@@ -92,9 +92,11 @@
 		(spec (syntax-error 'define-library "invalid export specifier" spec name)))
 	      specs))
        (define (parse-imports specs)
-	 (map (lambda (spec)
-		`(import ,(fixup-import/export-spec spec 'import)))
-	      specs))
+	 ;; What R7RS calls IMPORT, we call USE (it imports *and* loads code)
+         ;; XXX TODO: Should be import-for-syntax'ed as well?
+	 `(##core#require-extension
+	   ,(map (lambda (s) (fixup-import/export-spec s 'import)) specs)
+	   #t))
        (define (process-includes fnames ci?)
 	 `(##core#begin
 	   ,@(map (match-lambda
@@ -113,7 +115,7 @@
 	      ,(parse-decls more)))
 	   ((('import specs ...) . more)
 	    `(##core#begin
-	      ,@(parse-imports specs)
+	      ,(parse-imports specs)
 	      ,(parse-decls more)))
 	   ((('include fnames ...) . more)
 	    `(##core#begin
@@ -128,8 +130,8 @@
 	      ,@(process-include-decls fnames)
 	      ,(parse-decls more)))
 	   ((('cond-expand decls ...) . more)
-            `(##core#begin
-              ,(parse-decls (process-cond-expand decls))
+	    `(##core#begin
+	      ,(parse-decls (process-cond-expand decls))
 	      ,(parse-decls more)))
 	   ((('begin code ...) . more)
 	    `(##core#begin 
