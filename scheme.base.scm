@@ -1,6 +1,6 @@
 (module scheme.base ()
 
-(import (except scheme syntax-rules cond-expand))
+(import (except scheme syntax-rules cond-expand member))
 (import (except chicken with-exception-handler raise))
 
 (include "scheme.base-interface.scm")
@@ -164,6 +164,61 @@
       ((fx= i 0) (set-car! l obj))
     (when (null? l)
       (error 'list-set! "out of range"))))
+
+(: member (forall (a b) (a (list-of b) #!optional (procedure (b a) *) ; sic
+                         -> (or boolean (list-of b)))))
+
+;; XXX These aren't exported to the types file!?
+(define-specialization (member (x (or symbol procedure immediate)) (lst list))
+  (##core#inline "C_u_i_memq" x lst))
+(define-specialization (member x (lst (list-of (or symbol procedure immediate))))
+  (##core#inline "C_u_i_memq" x lst))
+(define-specialization (member x lst)
+  (##core#inline "C_i_member" x lst))
+
+(define member
+  (case-lambda
+   ((x lst) (##core#inline "C_i_member" x lst))
+   ((x lst eq?)
+    (let lp ((lst lst))
+      (cond ((null? lst) #f)
+            ((eq? (car lst) x) lst)
+            (else (lp (cdr lst))))))))
+
+
+(: assoc (forall (a b c) (a (list-of (pair b c)) #!optional (procedure (b a) *) ; sic
+                            -> (or boolean (list-of (pair b c))))))
+
+;; XXX These aren't exported to the types file!?
+(define-specialization (assoc (x (or symbol procedure immediate)) (lst (list-of pair)))
+  (##core#inline "C_u_i_assq" x lst))
+(define-specialization (assoc x (lst (list-of (pair (or symbol procedure immediate) *))))
+  (##core#inline "C_u_i_assq" x lst))
+(define-specialization (assoc x lst)
+  (##core#inline "C_i_assoc" x lst))
+
+(define assoc
+  (case-lambda
+   ((x lst) (##core#inline "C_i_assoc" x lst))
+   ((x lst eq?)
+    (let lp ((lst lst))
+      (cond ((null? lst) #f)
+            ((not (pair? (car lst)))
+             (error 'assoc "unexpected non-pair in list" (car lst)))
+            ((eq? (caar lst) x) (car lst))
+            (else (lp (cdr lst))))))))
+
+
+(: list-copy (forall (a) ((list-of a) -> (list-of a))))
+
+;; TODO: Test if this is the quickest way to do this, or whether we
+;; should just cons recursively like our SRFI-1 implementation does.
+(define (list-copy lst)
+  (let lp ((res '())
+           (lst lst))
+    (if (null? lst)
+        (##sys#fast-reverse res)
+        (lp (cons (car lst) res) (cdr lst)))))
 
 ;;;
 ;;; 6.11. Exceptions

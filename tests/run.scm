@@ -197,7 +197,38 @@
       (test '(two three) (cdr ls)))
     ;; Should be an error?
     #;(list-set! '(0 1 2) 1 "oops")
-    ))
+    (test-error (list-set! (list 1 2 3) 3 'foo)))
+
+  (test-group "mem*"
+    (test '(a b c) (memq 'a '(a b c)))
+    (test '(b c) (memq 'b '(a b c)))
+    (test #f (memq 'a '(b c d)))
+    (test #f (memq (list 'a) '(b (a) c)))
+    (test '((a) c) (member (list 'a) '(b (a) c)))
+    (test '("b" "c") (member "B" '("a" "b" "c") string-ci=?))
+    (test '(101 102) (memq 101 '(100 101 102))) ; unspecified in R7RS
+    (test '(101 102) (memv 101 '(100 101 102))))
+
+  (test-group "ass*"
+    (define e '((a 1) (b 2) (c 3)))
+    (test '(a 1) (assq 'a e))
+    (test '(b 2) (assq 'b e))
+    (test #f (assq 'd e))
+    (test #f (assq (list 'a) '(((a)) ((b)) ((c)))))
+    (test '((a)) (assoc (list 'a) '(((a)) ((b)) ((c)))))
+    (test '(2 4) (assoc 2.0 '((1 1) (2 4) (3 9)) =))
+    (test '(5 7) (assq 5 '((2 3) (5 7) (11 13)))) ; unspecified in R7RS
+    (test '(5 7) (assv 5 '((2 3) (5 7) (11 13))))
+    (test-error (assq 5 '(5 6 7)))
+    (test-error (assv 5 '(5 6 7)))
+    (test-error (assoc 5 '(5 6 7))))
+
+  (test-group "list-copy"
+   (define a '(1 8 2 8)) ; a may be immutable
+   (define b (list-copy a))
+   (set-car! b 3)        ; b is mutable
+   (test '((3 8 2 8)) (list b))
+   (test '((1 8 2 8)) (list a))))
 
 (define-syntax catch
   (syntax-rules ()
