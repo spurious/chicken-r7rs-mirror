@@ -4,7 +4,9 @@
   <= < >= = >
   abs 
   and
+  |#
   append
+  #|
   apply
   assoc assq assv
   begin
@@ -15,7 +17,10 @@
   bytevector-append bytevector-copy bytevector-copy!
   bytevector-length bytevector-u8-ref bytevector-u8-set!
   bytevector?
-  car cdr caar cadr cdar
+  |#
+  car cdr
+  caar cadr cdar cddr
+  #|
   call-with-current-continuation call/cc
   |#
   call-with-port 
@@ -35,8 +40,8 @@
   cond
   |#
   cond-expand
-  #|
   cons
+  #|
   current-input-port current-output-port current-error-port
   define
   define-record-type
@@ -90,7 +95,9 @@
   input-port? output-port?
   integer?
   lambda
+  |#
   length
+  #|
   let let*
   letrec letrec*
   let-values let*-values
@@ -99,13 +106,19 @@
   letrec-syntax
   #|
   library                    ; for "cond-expand"
+  |#
   list
+  #|
   list-copy
   list-ref list-set!
   list-tail
+  |#
   list?
+  #|
   make-bytevector
+  |#
   make-list
+  #|
   make-parameter
   make-string
   make-vector
@@ -117,13 +130,15 @@
   newline
   |#
   not
-  #|
   null?
+  #|
   number->string string->number
   number?
   open-input-bytevector open-output-bytevector
   open-input-string open-output-string
+  |#
   pair?
+  #|
   parameterize
   peek-char
   peek-u8
@@ -149,7 +164,9 @@
   reverse
   round
   set!
+  |#
   set-car! set-cdr!
+  #|
   square
   string
   string->list list->string

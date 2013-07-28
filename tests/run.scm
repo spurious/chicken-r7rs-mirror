@@ -10,30 +10,159 @@
 
 (test-begin "r7rs tests")
 
-(test-group "long boolean literals"
- (test #t (read-from-string "#t"))
- (test #f (read-from-string "#f"))
- (test #t (read-from-string "#true"))
- (test #f (read-from-string "#false"))
- (test-error (read-from-string "#faux")))
+(test-group "6.3: booleans"
+  (test-group "long boolean literals"
+    (test #t (read-from-string "#t"))
+    (test #f (read-from-string "#f"))
+    (test #t (read-from-string "#true"))
+    (test #f (read-from-string "#false"))
+    (test-error (read-from-string "#faux")))
 
-(test-group "boolean=?"
-  (test #t (boolean=? #t #t))
-  (test #t (boolean=? #t #t #t #t))
-  (test #t (boolean=? #f #f))
-  (test #t (boolean=? #f #f #f #f))
-  (test #f (boolean=? #f #t))
-  (test #f (boolean=? #f #t #t #t))
-  (test #f (boolean=? #f #f #t #t))
-  (test #f (boolean=? #f #f #f #t))
-  (test #f (boolean=? #t #f #f #f))
-  (test #f (boolean=? #t #f #f #t))
-  (test #f (boolean=? #t #t #f #t))
-  (test #f (boolean=? #f #f #f #t))
-  (test #f (boolean=? #f #t #f #f))
-  (test-error (boolean=? #f))
-  (test-error (boolean=? #f 1))
-  (test-error "no shortcutting" (boolean=? #f #t 2)))
+  (test-group "boolean=?"
+    (test #t (boolean=? #t #t))
+    (test #t (boolean=? #t #t #t #t))
+    (test #t (boolean=? #f #f))
+    (test #t (boolean=? #f #f #f #f))
+    (test #f (boolean=? #f #t))
+    (test #f (boolean=? #f #t #t #t))
+    (test #f (boolean=? #f #f #t #t))
+    (test #f (boolean=? #f #f #f #t))
+    (test #f (boolean=? #t #f #f #f))
+    (test #f (boolean=? #t #f #f #t))
+    (test #f (boolean=? #t #t #f #t))
+    (test #f (boolean=? #f #f #f #t))
+    (test #f (boolean=? #f #t #f #f))
+    (test-error (boolean=? #f))
+    (test-error (boolean=? #f 1))
+    (test-error "no shortcutting" (boolean=? #f #t 2))))
+
+(test-group "6.4: pairs and lists"
+  (test-group "pair?"
+    (test #t (pair? '(a . b)))
+    (test #t (pair? '(a b c)))
+    (test #f (pair? '()))
+    (test #f (pair? '#(a b)))
+    (test #f (pair? #f))
+    (test #f (pair? #t))
+    (test #f (pair? "some string"))
+    (test #f (pair? 123)))
+
+  (test-group "cons"
+    (test '(a) (cons 'a '()))
+    (test '((a) b c d) (cons '(a) '(b c d)))
+    (test '("a" b c) (cons "a" '(b c)))
+    (test '(a . 3) (cons 'a 3))
+    (test '((a b) . c) (cons '(a b) 'c)))
+
+  (test-group "car"
+    (test 'a (car '(a b c)))
+    (test '(a) (car '((a) b c d)))
+    (test 1 (car '(1 . 2)))
+    (test-error (car '()))
+    (test-error (car '#(1 2 3)))
+    (test-error (car "not a pair")))
+
+  (test-group "cdr"
+    (test '(b c d) (cdr '((a) b c d)))
+    (test 2 (cdr '(1 . 2)))
+    (test-error (cdr '()))
+    (test-error (cdr '#(1 2 3)))
+    (test-error (cdr "not a pair")))
+
+  (test-group "set-car!"
+    (define (f) (list 'not-a-constant-list))
+    (define (g) '(constant-list))
+    ;; Examples from the text are very incomplete and strange
+    (let ((res (f)))
+      (set-car! res 2)
+      (test 2 (car res))
+      (set-car! (f) 3)
+      (test 'not-a-constant-list (car (f))))
+    ;; XXX Should this *raise* an error?  R5RS also says this it "is an error"
+    #;(test-error (set-car! (g) 3))
+    (test-error (set-car! 'x 'y)))
+
+  (test-group "set-cdr!"
+    (define (f) (list 'not-a-constant-list))
+    (define (g) '(constant-list))
+    ;; Examples from the text are very incomplete and strange
+    (let ((res (f)))
+      (set-cdr! res 2)
+      (test 2 (cdr res))
+      (set-cdr! (f) 3)
+      (test '() (cdr (f))))
+    ;; XXX Should this *raise* an error?  R5RS also says this it "is an error"
+    #;(test-error (set-cdr! (g) 3))
+    (test-error (set-cdr! 'x 'y)))
+
+  (test-group "c..r (base)"
+    (test 'x (caar '((x) y)))
+    (test-error (caar '(x y)))
+    (test 'y (cadr '((x) y)))
+    (test-error (cadr '(x)))
+    (test '() (cdar '((x) y)))
+    (test-error (cdar '(x)))
+    (test '() (cddr '((x) y)))
+    (test-error (cddr '(x))))
+
+  ;; TODO: c..r (cxr)
+  
+  (test-group "null?"
+    (test #t (null? '()))
+    (test #t (null? (list)))
+    (test #f (null? '(a)))
+    (test #f (null? 'a))
+    (test #f (null? '#()))
+    (test #f (null? "foo")))
+
+  (test-group "list?"
+    (test #t (list? '(a b c)))
+    (test #t (list? (list 'a 'b 'c)))
+    (test #t (list? '()))
+    (test #f (list? '(a . b)))
+    (let ((x (list 'a)))
+      (set-cdr! x x)
+      (test #f (list? x)))
+    (test #f (list? 'a))
+    (test #f (list? '#()))
+    (test #f (list? "foo")))
+
+  (test-group "make-list"
+    (test-error (make-list))
+    (test '() (make-list 0))
+    (test '(#f) (make-list 1))          ; Unspecified
+    
+    (test '(#f) (make-list 1 #f))
+    (test-error (make-list 1 2 3))
+    (test '(3 3) (make-list 2 3))
+    (test '() (make-list 0 3))
+    (test-error (make-list -1 3))
+    (test-error (make-list #f 3)))
+
+  (test-group "list"
+    (test '(a 7 c) (list 'a (+ 3 4) 'c))
+    (test '() (list))
+    (test '(#f) (list #f))
+    (test '(a b c) (list 'a 'b 'c)))
+
+  (test-group "length"
+    (test 3 (length '(a b c)))
+    (test 3 (length '(a (b) (c d e))))
+    (test 0 (length '()))
+
+    (test-error (length '(x . y)))
+    (test-error (length '#(x y)))
+    (test-error (length "foo")))
+
+  (test-group "append"
+    (test '(x y) (append '(x) '(y)))
+    (test '(a b c d) (append '(a) '(b c d)))
+    (test '(a (b) (c)) (append '(a (b)) '((c))))
+    (test '(a b c . d) (append '(a b) '(c . d)))
+    (test 'a (append '() 'a))
+    (test '(a b . c) (append '(a b) 'c))
+    (test-error (append 'x '()))
+    (test-error (append '(x) 'y '()))))
 
 (define-syntax catch
   (syntax-rules ()
