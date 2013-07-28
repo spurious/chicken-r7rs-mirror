@@ -123,6 +123,23 @@
 
 
 ;;;
+;;; 6.4 pairs and lists
+;;;
+
+(: make-list (forall (x) (fixnum #!optional x -> (list-of x))))
+
+(define make-list
+  (case-lambda
+   ((n) (make-list n #f))
+   ((n fill)
+    (##sys#check-integer n 'make-list)
+    (unless (fx>= n 0)
+      (error 'make-list "Not a positive integer" n))
+    (do ((i n (fx- i 1))
+         (result '() (cons fill result)))
+        ((fx<= i 0) result))))) 
+
+;;;
 ;;; 6.11. Exceptions
 ;;;
 
