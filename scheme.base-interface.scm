@@ -8,7 +8,9 @@
   append
   #|
   apply
+  |#
   assoc assq assv
+  #|
   begin
   binary-port?
   |#
@@ -106,11 +108,7 @@
   #|
   library                    ; for "cond-expand"
   |#
-  list
-  #|
-  list-copy
-  |#
-  list-ref list-set! list-tail list?
+  list list-copy list-ref list-set! list-tail list?
   #|
   make-bytevector
   |#
@@ -121,7 +119,9 @@
   make-vector
   map
   max min
+  |#
   member memq memv
+  #|
   modulo remainder
   negative? positive?
   newline
