@@ -102,18 +102,15 @@
   letrec letrec*
   let-values let*-values
   |#
-  let-syntax
-  letrec-syntax
+  let-syntax letrec-syntax
   #|
   library                    ; for "cond-expand"
   |#
   list
   #|
   list-copy
-  list-ref list-set!
-  list-tail
   |#
-  list?
+  list-ref list-set! list-tail list?
   #|
   make-bytevector
   |#
@@ -161,7 +158,9 @@
   read-string
   read-u8
   real?
+  |#
   reverse
+  #|
   round
   set!
   |#

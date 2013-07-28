@@ -162,7 +162,42 @@
     (test 'a (append '() 'a))
     (test '(a b . c) (append '(a b) 'c))
     (test-error (append 'x '()))
-    (test-error (append '(x) 'y '()))))
+    (test-error (append '(x) 'y '())))
+
+  (test-group "reverse"
+    (test '(c b a) (reverse '(a b c)))
+    (test '((e (f)) d (b c) a) (reverse '(a (b c) d (e (f)))))
+    (test '() (reverse '()))
+    (test-error (reverse '(a . b)))
+    (test-error (reverse '(a b) '(c d)))
+    (test-error (reverse 'a))
+    (test-error (reverse '#(a b c)))
+    (test-error (reverse "foo")))
+
+  (test-group "list-tail"
+    (test '(a b c d e f) (list-tail '(a b c d e f) 0))
+    (test '(d e f) (list-tail '(a b c d e f) 3))
+    (test '() (list-tail '(a b c d e f) 6))
+    (test '() (list-tail '() 0))
+    (test-error (list-tail '(a b c d e f) -1))
+    (test-error (list-tail '(a b c d e f) 7))
+    (test-error (list-tail '(a b c d e . f) 6)))
+
+  (test-group "list-ref"
+    (test 'a (list-ref '(a b c d) 0))
+    (test 'b (list-ref '(a b c d) 1))
+    (test 'c (list-ref '(a b c d) 2))
+    (test 'd (list-ref '(a b c d) 3))
+    (test-error (list-ref '(a b c d) 4))
+    (test-error (list-ref '(a b c d) -1)))
+
+  (test-group "list-set!"
+    (let ((ls (list 'one 'two 'five!)))
+      (list-set! ls 2 'three)
+      (test '(two three) (cdr ls)))
+    ;; Should be an error?
+    #;(list-set! '(0 1 2) 1 "oops")
+    ))
 
 (define-syntax catch
   (syntax-rules ()
