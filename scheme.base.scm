@@ -134,10 +134,36 @@
    ((n fill)
     (##sys#check-integer n 'make-list)
     (unless (fx>= n 0)
-      (error 'make-list "Not a positive integer" n))
+      (error 'make-list "not a positive integer" n))
     (do ((i n (fx- i 1))
          (result '() (cons fill result)))
-        ((fx<= i 0) result))))) 
+        ((fx= i 0) result)))))
+
+
+(: list-tail (forall (x) ((list-of x) fixnum -> (list-of x))))
+
+(define (list-tail l n)
+  (##sys#check-integer n 'list-tail)
+  (unless (fx>= n 0)
+    (error 'list-tail "not a positive integer" n))
+  (do ((i n (fx- i 1))
+       (result l (cdr result)))
+      ((fx= i 0) result)
+    (when (null? result)
+      (error 'list-tail "out of range"))))
+
+
+(: list-set! (list fixnum -> undefined))
+
+(define (list-set! l n obj)
+  (##sys#check-integer n 'list-set!)
+  (unless (fx>= n 0)
+    (error 'list-set! "not a positive integer" n))
+  (do ((i n (fx- i 1))
+       (l l (cdr l)))
+      ((fx= i 0) (set-car! l obj))
+    (when (null? l)
+      (error 'list-set! "out of range"))))
 
 ;;;
 ;;; 6.11. Exceptions
