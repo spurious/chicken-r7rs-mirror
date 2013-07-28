@@ -11,6 +11,18 @@
 (test-begin "r7rs tests")
 
 (test-group "6.3: booleans"
+  ;; How silly...
+  (test-group "not"
+    (test #f (not #t))
+    (test #f (not 3))
+    (test #f (not (list 3)))
+    (test #t (not #f))
+    (test #f (not '()))
+    (test #f (not (list)))
+    (test #f (not 'nil))
+    (test-error (not))
+    (test-error (not 1 2)))
+  
   (test-group "long boolean literals"
     (test #t (read-from-string "#t"))
     (test #f (read-from-string "#f"))
