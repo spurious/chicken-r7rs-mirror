@@ -9,6 +9,11 @@
   (define (fail) (syntax-error loc "invalid library name" name))
   (match name
     ((? symbol?) name)
+    ;; We must replicate the core magic that handles SRFI-55's
+    ;; (require-extension (srfi N)), because we also need to generate
+    ;; SRFI-N library names when defining SRFIs from an R7RS module.
+    (('srfi (and num (? fixnum?)))
+     (string->symbol (string-append "srfi-" (number->string num))))
     ((parts ...)
      (string->symbol
       (string-intersperse 
