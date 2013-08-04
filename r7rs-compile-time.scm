@@ -143,12 +143,17 @@
 	      (##core#begin ,@code) 
 	      ,(parse-decls more)))
 	   (decl (syntax-error 'define-library "invalid library declaration" decl))))
-       `(##core#module ,real-name ((,dummy-export))
-		       ;; gruesome hack: we add a dummy export for adding indirect exports
-		       (import (rename scheme (define-syntax hidden:define-syntax)))
-		       (import (only scheme.base import export)) ; overwrites existing "import"
-		       (hidden:define-syntax ,dummy-export (lambda () #f))
-		       ,(parse-decls decls))))
+       `(##core#begin
+         (##core#module
+          ,real-name ((,dummy-export))
+          ;; gruesome hack: we add a dummy export for adding indirect exports
+          (import (rename scheme (define-syntax hidden:define-syntax)))
+          (import (only scheme.base import export)) ; overwrites existing "import"
+          ;; Another gruesome hack: register feature so "use" works properly
+          (import (rename chicken (register-feature! hidden:register-feature!)))
+          (hidden:register-feature! (##core#quote ,real-name))
+          (hidden:define-syntax ,dummy-export (lambda () #f))
+          ,(parse-decls decls)))))
     (_ (syntax-error 'define-library "invalid library definition" form))))
 
 (define (register-r7rs-module name)
