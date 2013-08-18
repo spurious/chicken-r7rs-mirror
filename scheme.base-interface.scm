@@ -75,8 +75,10 @@
   |#
   file-error?
   #|
-  floor floor-quotient floor-remainder
-  floor/
+  floor
+  |#
+  floor/ floor-quotient floor-remainder
+  #|
   flush-output-port
   for-each
   gcd lcm
@@ -143,8 +145,8 @@
   procedure?
   quasiquote
   quote
-  quotient remainder
   |#
+  quotient remainder
   raise raise-continuable
   #|
   rational?
@@ -190,8 +192,9 @@
   #|
   textual-port?
   truncate
-  truncate-quotient truncate-remainder
-  truncate/
+  |#
+  truncate/ truncate-quotient truncate-remainder
+  #|
   u8-ready?
   unless
   unquote unquote-splicing

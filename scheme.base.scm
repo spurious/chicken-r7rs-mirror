@@ -1,7 +1,8 @@
 (module scheme.base ()
 
 (import (except scheme syntax-rules cond-expand member))
-(import (except chicken with-exception-handler raise))
+(import (except chicken with-exception-handler raise quotient remainder modulo))
+(import numbers)
 
 (include "scheme.base-interface.scm")
 
