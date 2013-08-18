@@ -10,6 +10,63 @@
 
 (test-begin "r7rs tests")
 
+(test-group "6.2.6: numerical operations"
+  (test-group "floor/...truncate-remainder"
+    (test '(2 1)      (receive (floor/ 5 2)))
+    (test 2           (floor-quotient 5 2))
+    (test 1           (floor-remainder 5 2))
+    (test '(-3 1)     (receive (floor/ -5 2)))
+    (test -3          (floor-quotient -5 2))
+    (test 1           (floor-remainder -5 2))
+    (test '(-3 -1)    (receive (floor/ 5 -2)))
+    (test -3          (floor-quotient 5 -2))
+    (test -1          (floor-remainder 5 -2))
+    (test '(2 -1)     (receive (floor/ -5 -2)))
+    (test 2           (floor-quotient -5 -2))
+    (test -1          (floor-remainder -5 -2))
+    (test '(2.0 -1.0) (receive (floor/ -5 -2.0)))
+    ;; From the Guile manual
+    (test 12          (floor-quotient 123 10))
+    (test 3           (floor-remainder 123 10))
+    (test '(12 3)     (receive (floor/ 123 10)))
+    (test '(-13 -7)   (receive (floor/ 123 -10)))
+    (test '(-13 7)    (receive (floor/ -123 10)))
+    (test '(12 -3)    (receive (floor/ -123 -10)))
+  
+    (test '(2 1)      (receive (truncate/ 5 2)))
+    (test 2           (truncate-quotient 5 2))
+    (test 1           (truncate-remainder 5 2))
+    (test '(-2 -1)    (receive (truncate/ -5 2)))
+    (test -2          (truncate-quotient -5 2))
+    (test -1          (truncate-remainder -5 2))
+    (test '(-2 1)     (receive (truncate/ 5 -2)))
+    (test -2          (truncate-quotient 5 -2))
+    (test 1           (truncate-remainder 5 -2))
+    (test '(2 -1)     (receive (truncate/ -5 -2)))
+    (test 2           (truncate-quotient -5 -2))
+    (test -1          (truncate-remainder -5 -2))
+    (test '(2.0 -1.0) (receive (truncate/ -5.0 -2)))
+    (test 2.0         (truncate-quotient -5.0 -2))
+    (test -1.0        (truncate-remainder -5.0 -2))
+    ;; From the Guile manual
+    (test 12          (truncate-quotient 123 10))
+    (test 3           (truncate-remainder 123 10))
+    (test '(12 3)     (receive (truncate/ 123 10)))
+    (test '(-12 3)    (receive (truncate/ 123 -10)))
+    (test '(-12 -3)   (receive (truncate/ -123 10)))
+    (test '(12 -3)    (receive (truncate/ -123 -10))))
+
+  (test-group "quotient, remainder and modulo"
+    (test 1 (modulo 13 4))
+    (test 1 (remainder 13 4))
+    (test 3 (modulo -13 4))
+    (test -1 (remainder -13 4))
+    (test -3 (modulo 13 -4))
+    (test 1 (remainder 13 -4))
+    (test -1 (modulo -13 -4))
+    (test -1 (remainder -13 -4))
+    (test -1.0 (remainder -13 -4.0))))
+
 (test-group "6.3: booleans"
   ;; How silly...
   (test-group "not"

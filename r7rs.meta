@@ -2,6 +2,6 @@
  (author "The Chicken Team")
  (category lang-exts)
  (license "BSD")
- (depends matchable make numbers)
+ (depends matchable make (numbers "2.9"))
  (test-depends test)
  (foreign-depends))
