@@ -36,7 +36,7 @@
 (define-syntax cond-expand
   (er-macro-transformer
    (lambda (x r c)
-     (process-cond-expand (cdr x)))))
+     (cons 'begin (process-cond-expand (cdr x))))))
 
 
 ;;;
