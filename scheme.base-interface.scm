@@ -32,7 +32,9 @@
   ceiling
   char-ready?
   char->integer integer->char
-  char<? char>? char<=? char>=?
+  |#
+  char=? char<? char>? char<=? char>=?
+  #|
   char?
   close-input-port close-output-port
   |#
@@ -181,7 +183,9 @@
   string-length
   string-map
   string-ref string-set!
+  |#
   string=? string<? string>? string<=? string>=?
+  #|
   string?
   substring
   symbol=?

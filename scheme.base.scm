@@ -1,6 +1,12 @@
 (module scheme.base ()
 
-(import (except scheme syntax-rules cond-expand member))
+(import (except scheme syntax-rules cond-expand
+                       assoc list-set! list-tail member
+                       char=? char<? char>? char<=? char>=?
+                       string=? string<? string>? string<=? string>=?))
+(import (prefix (only scheme char=? char<? char>? char<=? char>=?
+                             string=? string<? string>? string<=? string>=?)
+                %))
 (import (except chicken with-exception-handler raise quotient remainder modulo))
 (import numbers)
 
@@ -220,6 +226,51 @@
     (if (null? lst)
         (##sys#fast-reverse res)
         (lp (cons (car lst) res) (cdr lst)))))
+
+;;;
+;;; 6.6 Characters
+;;;
+
+(define-syntax define-extended-arity-comparator
+  (syntax-rules ()
+    ((_ name comparator check-type)
+     (define name
+       (let ((cmp comparator))
+         (lambda (o1 o2 . os)
+           (check-type o1 'name)
+           (let lp ((o1 o1) (o2 o2) (os os) (eq #t))
+             (check-type o2 'name)
+             (if (null? os)
+                 (and eq (cmp o1 o2))
+                 (lp o2 (car os) (cdr os) (and eq (cmp o1 o2)))))))))))
+
+(: char=? (char char #!rest char -> boolean))
+(: char<? (char char #!rest char -> boolean))
+(: char>? (char char #!rest char -> boolean))
+(: char<=? (char char #!rest char -> boolean))
+(: char>=? (char char #!rest char -> boolean))
+
+(define-extended-arity-comparator char=? %char=? ##sys#check-char)
+(define-extended-arity-comparator char>? %char>? ##sys#check-char)
+(define-extended-arity-comparator char<? %char<? ##sys#check-char)
+(define-extended-arity-comparator char<=? %char<=? ##sys#check-char)
+(define-extended-arity-comparator char>=? %char>=? ##sys#check-char)
+
+;;;
+;;; 6.7 Strings
+;;;
+
+(: string=? (string string #!rest string -> boolean))
+(: string<? (string string #!rest string -> boolean))
+(: string>? (string string #!rest string -> boolean))
+(: string<=? (string string #!rest string -> boolean))
+(: string>=? (string string #!rest string -> boolean))
+
+(define-extended-arity-comparator string=? %string=? ##sys#check-string)
+(define-extended-arity-comparator string<? %string<? ##sys#check-string)
+(define-extended-arity-comparator string>? %string>? ##sys#check-string)
+(define-extended-arity-comparator string<=? %string<=? ##sys#check-string)
+(define-extended-arity-comparator string>=? %string>=? ##sys#check-string)
 
 ;;;
 ;;; 6.11. Exceptions
