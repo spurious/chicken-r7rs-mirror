@@ -343,6 +343,51 @@
     (test #t (string>=? "b" "b" "a"))
     (test #f (string>=? "b" "a" "b"))))
 
+(test-group "6.9: bytevectors"
+
+  (test-group "bytevector-copy"
+    (test-error (bytevector-copy ""))
+    (test-error (bytevector-copy #u8() #u8()))
+    (test-error (bytevector-copy #u8() 1))
+    (test-error (bytevector-copy #u8(0) -1))
+    (test-error (bytevector-copy #u8(0) 0 2))
+    (test #u8() (bytevector-copy #u8()))
+    (test #u8(0 1 2) (bytevector-copy #u8(0 1 2)))
+    (test #u8(1 2) (bytevector-copy #u8(0 1 2) 1))
+    (test #u8(1) (bytevector-copy #u8(0 1 2) 1 2))
+    (test #u8() (bytevector-copy #u8(0 1 2) 1 1)))
+
+  (test-group "bytevector-copy!"
+    (test-error (bytevector-copy! ""))
+    (test-error (bytevector-copy! #u8(0) 0 ""))
+    (test-error (bytevector-copy! #u8() #u8() 0))
+    (test-error (bytevector-copy! #u8() 0 #u8(0)))
+    (test-error (bytevector-copy! #u8(0) 1 #u8(0)))
+    (test-error (bytevector-copy! #u8(0) 1 #u8(0) 0))
+    (test-error (bytevector-copy! #u8(0) 0 #u8(0) 0 2))
+    (test-error (bytevector-copy! #u8(0) 0 #u8(0 1) 1 0))
+    (test-assert (bytevector-copy! #u8() 0 #u8()))
+    (let ((t #u8(0 1 2))
+	  (f #u8(3 4 5 6)))
+      (bytevector-copy! t 0 f 1 1)
+      (test "(bytevector-copy! t 1 f 1 1)" #u8(0 1 2) t)
+      (bytevector-copy! t 0 f 0 1)
+      (test "(bytevector-copy! t 0 f 0 1)" #u8(3 1 2) t)
+      (bytevector-copy! t 0 f 1 3)
+      (test "(bytevector-copy! t 0 f 1 3)" #u8(4 5 2) t)
+      (bytevector-copy! t 1 f 2)
+      (test "(bytevector-copy! t 1 f 1)" #u8(4 5 6) t)
+      (bytevector-copy! t 0 f 1)
+      (test "(bytevector-copy! t 0 f)" #u8(4 5 6) t)))
+
+  (test-group "bytevector-append"
+    (test-error (bytevector-append #u8() 1))
+    (test #u8() (bytevector-append))
+    (test #u8(0) (bytevector-append #u8(0)))
+    (test #u8() (bytevector-append #u8() #u8()))
+    (test #u8(0 1) (bytevector-append #u8(0) #u8(1)))
+    (test #u8(0 1 2 3 4 5) (bytevector-append #u8(0 1) #u8(2 3) #u8(4 5)))))
+
 (define-syntax catch
   (syntax-rules ()
     ((_ . body) (handle-exceptions e e . body))))
