@@ -172,7 +172,7 @@
       (error 'list-tail "out of range"))))
 
 
-(: list-set! (list fixnum -> undefined))
+(: list-set! (list fixnum * -> undefined))
 
 (define (list-set! l n obj)
   (##sys#check-integer n 'list-set!)
