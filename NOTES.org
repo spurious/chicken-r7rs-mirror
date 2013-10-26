@@ -13,3 +13,7 @@ NOTES
 
 * Redefinition of "import" causes "re-importing" warnings.
   - The warnings could be removed in core, it's usefulness is not completely clear.
+
+* Just renaming procedures (like from srfi-4) doesn't change their lambda-info names.
+  - This is sort of confusing, do we care (or should we "(define new old)")?
+  - Also, this makes the locations from errors (from ##sys#check-whatever) wrong/misleading.

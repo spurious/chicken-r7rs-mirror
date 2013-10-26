@@ -15,11 +15,11 @@
   binary-port?
   |#
   boolean? boolean=?
-  #|
-  bytevector-append bytevector-copy bytevector-copy!
+  bytevector
+  bytevector-append 
+  bytevector-copy bytevector-copy!
   bytevector-length bytevector-u8-ref bytevector-u8-set!
   bytevector?
-  |#
   car cdr
   caar cadr cdar cddr
   #|
@@ -113,9 +113,7 @@
   library                    ; for "cond-expand"
   |#
   list list-copy list-ref list-set! list-tail list?
-  #|
   make-bytevector
-  |#
   make-list
   #|
   make-parameter

@@ -8,9 +8,20 @@
                              string=? string<? string>? string<=? string>=?)
                 %))
 (import (except chicken with-exception-handler raise quotient remainder modulo))
+(import (rename (only srfi-4 ; TODO: utf8<->string
+                             make-u8vector subu8vector u8vector u8vector?
+                             u8vector-length u8vector-ref u8vector-set!)
+                (u8vector? bytevector?)
+                (make-u8vector make-bytevector)
+                (u8vector bytevector)
+                (u8vector-length bytevector-length)
+                (u8vector-ref bytevector-u8-ref)
+                (u8vector-set! bytevector-u8-set!)))
 (import numbers)
 
 (include "scheme.base-interface.scm")
+
+(require-library srfi-4)
 
 (begin-for-syntax (require-library r7rs-compile-time))
 (import-for-syntax r7rs-compile-time)
@@ -272,6 +283,64 @@
 (define-extended-arity-comparator string>? %string>? ##sys#check-string)
 (define-extended-arity-comparator string<=? %string<=? ##sys#check-string)
 (define-extended-arity-comparator string>=? %string>=? ##sys#check-string)
+
+;;;
+;;; 6.9. Bytevectors
+;;;
+
+(define-type bytevector u8vector)
+
+(: bytevector-copy (bytevector #!optional fixnum fixnum -> bytevector))
+
+(define bytevector-copy
+  (case-lambda
+    ((v) (bytevector-copy v 0 (bytevector-length v)))
+    ((v s) (bytevector-copy v s (bytevector-length v)))
+    ((v s e)
+     (##sys#check-structure v 'u8vector 'bytevector-copy)
+     (##sys#check-exact s 'bytevector-copy)
+     (##sys#check-exact e 'bytevector-copy)
+     (unless (and (fx<= 0 s) (fx<= s e) (fx<= e (bytevector-length v)))
+       (error 'bytevector-copy "invalid indices" s e))
+     (subu8vector v s e))))
+
+(: bytevector-copy! (bytevector fixnum bytevector #!optional fixnum fixnum -> undefined))
+
+(define bytevector-copy!
+  (case-lambda
+    ((t a f) (bytevector-copy! t a f 0 (bytevector-length f)))
+    ((t a f s) (bytevector-copy! t a f s (bytevector-length f)))
+    ((t a f s e)
+     (##sys#check-structure t 'u8vector 'bytevector-copy!)
+     (##sys#check-structure f 'u8vector 'bytevector-copy!)
+     (##sys#check-exact a 'bytevector-copy)
+     (##sys#check-exact s 'bytevector-copy)
+     (##sys#check-exact e 'bytevector-copy)
+     (unless (and (fx<= 0 a)
+                  (fx<= 0 s)
+                  (fx<= e (bytevector-length f))
+                  (fx<= (fx- e s) (fx- (bytevector-length t) a)))
+       (error 'bytevector-copy! "invalid indices" a s e))
+     (do ((s s (fx+ s 1))
+          (a a (fx+ a 1)))
+         ((fx= s e))
+       (bytevector-u8-set! t a (bytevector-u8-ref f s))))))
+
+(: bytevector-append (#!rest bytevector -> bytevector))
+
+(define (bytevector-append . vs)
+  (for-each (cut ##sys#check-structure <> 'u8vector 'bytevector-append) vs)
+  (let* ((ls (map bytevector-length vs))
+         (ov (make-bytevector (foldl fx+ 0 ls))))
+    (let lp ((i 0)
+             (vs vs)
+             (ls ls))
+      (cond ((null? vs) ov)
+            (else
+             (bytevector-copy! ov i (car vs) 0 (car ls))
+             (lp (fx+ i (car ls))
+                 (cdr vs)
+                 (cdr ls)))))))
 
 ;;;
 ;;; 6.11. Exceptions
