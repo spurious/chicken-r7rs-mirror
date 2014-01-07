@@ -68,15 +68,41 @@
     ((? symbol? spec) spec)
     (_ (syntax-error loc "invalid import/export specifier" spec))))
 
-(define (current-source-filename)
-  (or (and (feature? #:compiling) ##compiler#source-filename)
-      ##sys#current-source-filename))
+;; Dig e.g. foo.bar out of (only (foo bar) ...) ...
+(define (import/export-spec-feature-name spec loc)
+  (match spec
+    ((? symbol? spec) spec)
+    (((or 'only 'except 'rename 'prefix) name . more)
+     (import/export-spec-feature-name name loc))
+    ((name ...)
+     (parse-library-name name loc))
+    (else
+     (syntax-error loc "invalid import/export specifier" spec))))
+
+(define (import-transformer type)
+  (er-macro-transformer
+   (let ((%import (caddr (assq type (##sys#macro-environment))))) ; XXX safe?
+     (lambda (x r c)
+       `(##core#begin
+	 ,@(map (lambda (spec)
+		  (let ((spec (fixup-import/export-spec spec type))
+			(name (import/export-spec-feature-name spec type)))
+		    (%import (list type spec) '() (##sys#current-environment))
+		    (if (memq name '(scheme foreign)) ; XXX others?
+			'(##core#undefined)
+			`(##core#require-extension (,name) #f))))
+		(strip-syntax (cdr x))))))))
+
+(define (current-source-directory)
+  (pathname-directory
+   (or (and (feature? #:compiling) ##compiler#source-filename)
+       ##sys#current-source-filename)))
 
 (define (read-forms filename ci?)
   (read-file 
    (if (absolute-pathname? filename)
        filename
-       (make-pathname (current-source-filename) filename))
+       (make-pathname (current-source-directory) filename))
    (lambda (port)
      (parameterize ((case-sensitive ci?))
        (read port)))))
@@ -98,10 +124,8 @@
 	      specs))
        (define (parse-imports specs)
 	 ;; What R7RS calls IMPORT, we call USE (it imports *and* loads code)
-         ;; XXX TODO: Should be import-for-syntax'ed as well?
-	 `(##core#require-extension
-	   ,(map (lambda (s) (fixup-import/export-spec s 'import)) specs)
-	   #t))
+	 ;; XXX TODO: Should be import-for-syntax'ed as well?
+	 `(import ,@specs)) ; NOTE this is the r7rs module's IMPORT!
        (define (process-includes fnames ci?)
 	 `(##core#begin
 	   ,@(map (match-lambda
@@ -136,7 +160,7 @@
 	      ,(parse-decls more)))
 	   ((('cond-expand decls ...) . more)
 	    `(##core#begin
-	      ,(parse-decls (process-cond-expand decls))
+	      ,@(process-cond-expand decls)
 	      ,(parse-decls more)))
 	   ((('begin code ...) . more)
 	    `(##core#begin 
@@ -144,15 +168,15 @@
 	      ,(parse-decls more)))
 	   (decl (syntax-error 'define-library "invalid library declaration" decl))))
        `(##core#begin
-         (##core#module
-          ,real-name ((,dummy-export))
-          ;; gruesome hack: we add a dummy export for adding indirect exports
-          (import (rename scheme (define-syntax hidden:define-syntax)))
-          (import (only scheme.base import export)) ; overwrites existing "import"
-          ;; Another gruesome hack: register feature so "use" works properly
-          (import (rename chicken (register-feature! hidden:register-feature!)))
-          (hidden:register-feature! (##core#quote ,real-name))
-          (hidden:define-syntax ,dummy-export (lambda () #f))
+	 (##core#module
+	  ,real-name ((,dummy-export))
+	  ;; gruesome hack: we add a dummy export for adding indirect exports
+	  (##core#define-syntax ,dummy-export (##core#lambda () #f))
+	  ;; Another gruesome hack: provide feature so "use" works properly
+	  (##sys#provide (##core#quote ,real-name))
+	  ;; Set up an R7RS environment for the module's body.
+	  (import-for-syntax r7rs) ; overwrites "syntax-rules"
+	  (import r7rs) ; overwrites existing "import" and "import-for-syntax"
           ,(parse-decls decls)))))
     (_ (syntax-error 'define-library "invalid library definition" form))))
 
@@ -173,3 +197,16 @@
 		     (lambda (dummylist)
 		       (set-cdr! dummylist (cons sym (cdr dummylist))))))))
 	  (register-export sym mod))))))
+
+(define-syntax define-extended-arity-comparator
+  (syntax-rules ()
+    ((_ name comparator check-type)
+     (define name
+       (let ((c comparator))
+	 (lambda (o1 o2 . os)
+	   (check-type o1 'name)
+	   (let lp ((o1 o1) (o2 o2) (os os) (eq #t))
+	     (check-type o2 'name)
+	     (if (null? os)
+		 (and eq (c o1 o2))
+		 (lp o2 (car os) (cdr os) (and eq (c o1 o2)))))))))))
