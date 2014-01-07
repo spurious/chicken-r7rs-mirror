@@ -16,18 +16,24 @@
 
   (define (environment . specs)
     (let ((name (gensym "environment-module-")))
-      ;; create module...
-      (%eval `(module ,name ()
-		,@(map (lambda (spec)
-			 `(import ,(fixup-import/export-spec spec 'environment)))
-		       specs)))
-      (let ((mod (##sys#find-module name)))
-	;; ...and remove it right away
-	(set! ##sys#module-table (##sys#delq mod ##sys#module-table))
-	(##sys#make-structure 'environment
-	 name
-	 (let ((env (##sys#slot mod 13)))
-	   (append (car env) (cdr env))) ; combine env and syntax bindings
-	 #t))))
+      (define (delmod)
+	(and-let* ((modp (assq name ##sys#module-table)))
+	  (set! ##sys#module-table (##sys#delq modp ##sys#module-table))))
+      (dynamic-wind
+       void
+       (lambda ()
+	 ;; create module...
+	 (%eval `(module ,name ()
+		  ,@(map (lambda (spec)
+			   `(import ,(fixup-import/export-spec spec 'environment)))
+			 specs)))
+	 (let ((mod (##sys#find-module name)))
+	   (##sys#make-structure 'environment
+	    name
+	    (let ((env (##sys#slot mod 13)))
+	      (append (car env) (cdr env))) ; combine env and syntax bindings
+	    #t)))
+       ;; ...and remove it right away
+       delmod)))
 
 )
