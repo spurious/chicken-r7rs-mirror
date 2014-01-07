@@ -4,13 +4,12 @@
 (use make srfi-1)
 
 (define scheme-modules
-  '("case-lambda" "char" "complex" "cxr" "eval" "file" "inexact" "load" "process-context" "read")) ;XXX
+  '("case-lambda" "char" "complex" "cxr" "eval" "file" "inexact" "load" "process-context" "r5rs" "read" "write")) ;XXX
 
 (make (("r7rs-compile-time.so" ("r7rs-compile-time.scm" "r7rs-compile-time-module.scm")
 	(compile -s -O3 -d1 r7rs-compile-time-module.scm -J -o r7rs-compile-time.so)
 	(compile -s -O3 -d0 r7rs-compile-time.import.scm))
-       ("scheme.base.so" ("scheme.base.scm" "scheme.base-interface.scm"
-                          "synrules.scm")
+       ("scheme.base.so" ("scheme.base.scm" "scheme.base-interface.scm")
 	(compile -s -O3 -d1 scheme.base.scm -J -emit-type-file scheme.base.types)
 	(compile -s -O3 -d0 scheme.base.import.scm)))
   '("r7rs-compile-time.so" "scheme.base.so"))
@@ -27,7 +26,7 @@
 		(list so))))
  scheme-modules)
 
-(make (("r7rs.so" ("r7rs.scm" "scheme.base-interface.scm")
+(make (("r7rs.so" ("r7rs.scm" "synrules.scm")
 	(compile -s -O3 -d0 r7rs.scm -J)
 	(compile -s -O3 -d0 r7rs.import.scm))))
 

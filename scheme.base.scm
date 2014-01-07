@@ -1,13 +1,14 @@
 (module scheme.base ()
 
-(import (except scheme syntax-rules cond-expand
+(import (except scheme syntax-rules cond-expand include
                        assoc list-set! list-tail member
                        char=? char<? char>? char<=? char>=?
                        string=? string<? string>? string<=? string>=?))
 (import (prefix (only scheme char=? char<? char>? char<=? char>=?
                              string=? string<? string>? string<=? string>=?)
                 %))
-(import (except chicken with-exception-handler raise quotient remainder modulo))
+(import (except chicken with-exception-handler raise include quotient remainder modulo))
+(import (rename (only chicken include) (include %include)))
 (import (rename (only srfi-4 ; TODO: utf8<->string
                              make-u8vector subu8vector u8vector u8vector?
                              u8vector-length u8vector-ref u8vector-set!)
@@ -17,28 +18,26 @@
                 (u8vector-length bytevector-length)
                 (u8vector-ref bytevector-u8-ref)
                 (u8vector-set! bytevector-u8-set!)))
-(import numbers)
 
-(include "scheme.base-interface.scm")
-
-(require-library srfi-4)
+(%include "scheme.base-interface.scm")
 
 (begin-for-syntax (require-library r7rs-compile-time))
 (import-for-syntax r7rs-compile-time)
+(import r7rs-compile-time)
+(import numbers)
 
+;;;
+;;; 4.1.7. Inclusion
+;;;
 
-(define-syntax import
-  (er-macro-transformer
-   (lambda (x r c)
-     (##sys#expand-import 
-      (cons (car x)
-	    (map (lambda (spec)
-		   (fixup-import/export-spec (strip-syntax spec) 'import))
-		 (cdr x)))
-      r c
-      ##sys#current-environment ##sys#macro-environment
-      #f #f 'import) ) ) )
-
+(define-syntax include
+  (syntax-rules ()
+    ((_ str)
+     (%include str))
+    ((_ str . rest)
+     (begin
+       (%include str)
+       (include . rest)))))
 
 ;;;
 ;;; 4.2.1. Conditionals
@@ -115,10 +114,12 @@
                     (apply values args))))))))))))))
 
 ;;;
-;;; 5.4. Syntax definitions
+;;; 6.2.6 Numerical operations
 ;;;
-(include "synrules.scm")
 
+(: square (number --> number))
+
+(define (square n) (* n n))
 
 ;;;
 ;;; 6.3 Booleans
@@ -242,19 +243,6 @@
 ;;;
 ;;; 6.6 Characters
 ;;;
-
-(define-syntax define-extended-arity-comparator
-  (syntax-rules ()
-    ((_ name comparator check-type)
-     (define name
-       (let ((cmp comparator))
-         (lambda (o1 o2 . os)
-           (check-type o1 'name)
-           (let lp ((o1 o1) (o2 o2) (os os) (eq #t))
-             (check-type o2 'name)
-             (if (null? os)
-                 (and eq (cmp o1 o2))
-                 (lp o2 (car os) (cdr os) (and eq (cmp o1 o2)))))))))))
 
 (: char=? (char char #!rest char -> boolean))
 (: char<? (char char #!rest char -> boolean))
@@ -451,5 +439,7 @@
   (not (port-closed? port)))
 
 (define (eof-object) #!eof)
+
+(define flush-output-port flush-output)
 
 )

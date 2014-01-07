@@ -12,20 +12,7 @@
     %))
 
 (import chicken)
-
-;; Copy-pasta from scheme.base.scm.
-(define-syntax define-extended-arity-comparator
-  (syntax-rules ()
-    ((_ name comparator check-type)
-     (define name
-       (let ((c comparator))
-         (lambda (o1 o2 . os)
-           (check-type o1 'name)
-           (let lp ((o1 o1) (o2 o2) (os os) (eq #t))
-             (check-type o2 'name)
-             (if (null? os)
-                 (and eq (c o1 o2))
-                 (lp o2 (car os) (cdr os) (and eq (c o1 o2)))))))))))
+(require-extension r7rs-compile-time)
 
 (: char-ci=? (char char #!rest char -> boolean))
 (: char-ci<? (char char #!rest char -> boolean))

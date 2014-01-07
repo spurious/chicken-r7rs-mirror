@@ -1,9 +1,19 @@
-(use r7rs test)
+(use r7rs)
 
 ;; XXX: This seems to be necessary in order to get the syntax-rules
 ;; from r7rs rather than the built-in CHICKEN one.  I'm not sure if
 ;; that's correct or not...
-(import-for-syntax r7rs)
+(import-for-syntax (r7rs))
+
+(import (chicken)
+        (test)
+        (ports)
+        (scheme base)
+        (scheme char)
+        (scheme eval)
+        (scheme file)
+        (scheme read)
+        (scheme write))
 
 (define (read-from-string s)
   (with-input-from-string s read))
@@ -304,6 +314,8 @@
     (test-error "arity" (char=? #\a))
     (test-error "type check" (char=? #\a #\a 1))
     (test-error "no shortcutting" (char=? #\a #\b 1))
+    (test #f (char? 1))
+    (test #t (char? #\a))
     (test #t (char=? #\a #\a))
     (test #f (char=? #\a #\b))
     (test #t (char=? #\a #\a #\a))
@@ -326,6 +338,8 @@
     (test-error "arity" (string=? "a"))
     (test-error "type check" (string=? "a" "a" 1))
     (test-error "no shortcutting" (string=? "a" "b" 1))
+    (test #f (string? 1))
+    (test #t (string? "a"))
     (test #t (string=? "a" "a"))
     (test #f (string=? "a" "b"))
     (test #t (string=? "a" "a" "a"))
@@ -761,6 +775,12 @@
          ;; CHICKEN features!
          (test "DSSSL keyword arguments aren't renamed (not R7RS)"
                "hello, XXX" (bar who: "XXX")))))
+
+(test-group "define-library"
+  (test-assert "R7RS libraries use the numbers extension"
+               (define-library (foo)
+                 (import (scheme base))
+                 (begin (eq? numbers#+ +)))))
 
 (test-end "r7rs tests")
 
