@@ -87,6 +87,7 @@
   library                    ; for "cond-expand"
   |#
   list list-copy list-ref list-set! list-tail list?
+  list->vector
   make-bytevector
   make-list
   make-parameter
