@@ -1,5 +1,10 @@
 (module scheme.char (char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=?
-		     string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?)
+		     string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?
+                     char-alphabetic? char-numeric? char-whitespace?
+                     char-upper-case? char-lower-case?
+                     ;; char-foldcase ; TODO
+                     char-upcase char-downcase
+		     digit-value)
 
 (import
   (except scheme
@@ -36,4 +41,10 @@
 (define-extended-arity-comparator string-ci<? %string-ci<? ##sys#check-string)
 (define-extended-arity-comparator string-ci>? %string-ci>? ##sys#check-string)
 (define-extended-arity-comparator string-ci<=? %string-ci<=? ##sys#check-string)
-(define-extended-arity-comparator string-ci>=? %string-ci>=? ##sys#check-string))
+(define-extended-arity-comparator string-ci>=? %string-ci>=? ##sys#check-string)
+
+(: digit-value (char -> (or fixnum boolean)))
+
+(define (digit-value c)
+  (let ((i (char->integer c)))
+    (and (fx>= i 48) (fx<= i 57) (fx- i 48)))))
