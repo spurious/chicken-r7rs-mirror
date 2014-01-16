@@ -1,14 +1,16 @@
 (module r7rs (define-library import import-for-syntax export syntax-rules)
 
   (import (except scheme syntax-rules))	;XXX except ...
-  (import (only chicken include))	;XXX except ...
+  (import (only chicken feature? include)) ;XXX except ...
 
   ;; For syntax definition helpers.
   (import-for-syntax r7rs-compile-time matchable)
   (begin-for-syntax (require-library r7rs-compile-time))
 
   ;; For extended number literals.
-  (require-library numbers)
+  (if (feature? 'compiler-extension)
+      (require-library numbers-syntax)
+      (require-extension numbers))
 
   ;; For #u8(...) syntax.
   (require-extension srfi-4)
