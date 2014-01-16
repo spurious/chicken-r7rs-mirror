@@ -10,7 +10,6 @@
         (ports)
         (scheme base)
         (scheme char)
-        (scheme eval)
         (scheme file)
         (scheme read)
         (scheme write))
@@ -19,6 +18,25 @@
   (with-input-from-string s read))
 
 (test-begin "r7rs tests")
+
+(test-group "4.1.7: Inclusion"
+  (test-group "include"
+    (test "multiple filenames"
+          "abcabc"
+          (with-output-to-string
+           (lambda () (include "include.scm" "include.scm"))))
+    (test-error "case sensitivity"
+                (with-output-to-string
+                 (lambda () (include "include-ci.scm")))))
+  (test-group "include-ci"
+    (test "multiple filenames"
+          "abcabc"
+          (with-output-to-string
+           (lambda () (include-ci "include.scm" "include.scm"))))
+    (test "case sensitivity"
+          "abc"
+          (with-output-to-string
+           (lambda () (include-ci "include-ci.scm"))))))
 
 (test-group "6.2.6: numerical operations"
   (test-group "floor/...truncate-remainder"
@@ -75,7 +93,12 @@
     (test 1 (remainder 13 -4))
     (test -1 (modulo -13 -4))
     (test -1 (remainder -13 -4))
-    (test -1.0 (remainder -13 -4.0))))
+    (test -1.0 (remainder -13 -4.0)))
+
+  (test-group "square"
+    (test 1 (square 1))
+    (test 16 (square 4))
+    (test 16.0 (square 4.0))))
 
 (test-group "6.3: booleans"
   ;; How silly...
@@ -309,6 +332,24 @@
    (test '((3 8 2 8)) (list b))
    (test '((1 8 2 8)) (list a))))
 
+(test-group "6.5: Symbols"
+  (test-group "symbol=?"
+    (test-error (symbol=?))
+    (test-error (symbol=? 'a))
+    (test-error (symbol=? 'a 1))
+    (test-error (symbol=? 'a 'b 1))
+    (test #t (symbol=? '|| '||))
+    (test #t (symbol=? '|a b| '|a b|))
+    (test #t (symbol=? 'a 'a))
+    (test #f (symbol=? 'a 'b))
+    (test #t (symbol=? 'a 'a 'a))
+    (test #f (symbol=? 'a 'a 'b))
+    (test #f (symbol=? 'a 'b 'b))
+    (test #t (symbol=? 'a 'a 'a 'a))
+    (test #f (symbol=? 'a 'a 'a 'b))
+    (test #f (symbol=? 'a 'a 'b 'b))
+    (test #f (symbol=? 'a 'b 'b 'b))))
+
 (test-group "6.6: characters"
   (test-group "char*?"
     (test-error "arity" (char=? #\a))
@@ -334,6 +375,7 @@
     (test #f (char>=? #\b #\a #\b))))
 
 (test-group "6.7: strings"
+
   (test-group "string*?"
     (test-error "arity" (string=? "a"))
     (test-error "type check" (string=? "a" "a" 1))
@@ -355,7 +397,87 @@
     (test #t (string>? "c" "b" "a"))
     (test #f (string>? "c" "b" "b"))
     (test #t (string>=? "b" "b" "a"))
-    (test #f (string>=? "b" "a" "b"))))
+    (test #f (string>=? "b" "a" "b")))
+
+  (test-group "string->list"
+    (test-error (string->list "" 1))
+    (test-error (string->list "a" 1 2))
+    (test '(#\a) (string->list "a"))
+    (test '() (string->list "a" 1))
+    (test '(#\b) (string->list "abc" 1 2))
+    (test '() (string->list "abc" 2 2)))
+  
+  (test-group "string->vector"
+    (test-error (string->vector "" 1))
+    (test-error (string->vector "a" 0 2))
+    (test #(#\a) (string->vector "a"))
+    (test #() (string->vector "a" 1 1))
+    (test #(#\b) (string->vector "abc" 1 2))
+    (test #() (string->vector "abc" 2 2)))
+
+  (test-group "vector->string"
+    (test-error (vector->string #() 1))
+    (test-error (vector->string #(1)))
+    (test-error (vector->string #(#\a) 0 2))
+    (test "a" (vector->string #(#\a)))
+    (test "" (vector->string #(#\a) 1 1))
+    (test "b" (vector->string #(#\a #\b #\c) 1 2))
+    (test "" (vector->string #(#\a #\b #\c) 2 2))))
+
+(test-group "6.8: vectors"
+
+  (test-group "vector-copy"
+    (test-error (vector-copy ""))
+    (test-error (vector-copy #() #()))
+    (test-error (vector-copy #() 1))
+    (test-error (vector-copy #(0) -1))
+    (test-error (vector-copy #(0) 0 2))
+    (test #() (vector-copy #()))
+    (test #(0 1 2) (vector-copy #(0 1 2)))
+    (test #(1 2) (vector-copy #(0 1 2) 1))
+    (test #(1) (vector-copy #(0 1 2) 1 2))
+    (test #() (vector-copy #(0 1 2) 1 1)))
+
+  (test-group "vector-copy!"
+    (test-error (vector-copy! ""))
+    (test-error (vector-copy! #(0) 0 ""))
+    (test-error (vector-copy! #() #() 0))
+    (test-error (vector-copy! #() 0 #(0)))
+    (test-error (vector-copy! #(0) 1 #(0)))
+    (test-error (vector-copy! #(0) 1 #(0) 0))
+    (test-error (vector-copy! #(0) 0 #(0) 0 2))
+    (test-error (vector-copy! #(0) 0 #(0 1) 1 0))
+    (test-assert (vector-copy! #() 0 #()))
+    (let ((t #(0 1 2))
+	  (f #(3 4 5 6)))
+      (vector-copy! t 0 f 1 1)
+      (test "(vector-copy! t 1 f 1 1)" #(0 1 2) t)
+      (vector-copy! t 0 f 0 1)
+      (test "(vector-copy! t 0 f 0 1)" #(3 1 2) t)
+      (vector-copy! t 0 f 1 3)
+      (test "(vector-copy! t 0 f 1 3)" #(4 5 2) t)
+      (vector-copy! t 1 f 2)
+      (test "(vector-copy! t 1 f 1)" #(4 5 6) t)
+      (vector-copy! t 0 f 1)
+      (test "(vector-copy! t 0 f)" #(4 5 6) t)))
+
+  (test-group "vector-append"
+    (test-error (vector-append ""))
+    (test-error (vector-append #() 1))
+    (test #() (vector-append))
+    (test #(0) (vector-append #(0)))
+    (test #() (vector-append #() #()))
+    (test #(0 1) (vector-append #(0) #(1)))
+    (test #(0 1 2 3 4 5) (vector-append #(0 1) #(2 3) #(4 5))))
+
+  (test-group "vector->list"
+    (test-error (vector->list ""))
+    (test-error (vector->list #() 1))
+    (test '() (vector->list #()))
+    (test '(0 1 2) (vector->list #(0 1 2)))
+    (test '(1 2) (vector->list #(0 1 2) 1))
+    (test '(1) (vector->list #(0 1 2) 1 2))
+    (test '() (vector->list #(0 1 2) 2 2))))
 
 (test-group "6.9: bytevectors"
 
@@ -401,6 +523,75 @@
     (test #u8() (bytevector-append #u8() #u8()))
     (test #u8(0 1) (bytevector-append #u8(0) #u8(1)))
     (test #u8(0 1 2 3 4 5) (bytevector-append #u8(0 1) #u8(2 3) #u8(4 5)))))
+
+(test-group "6.10: Control features"
+
+  (define (1st . a) (first a))
+  (define (2nd . a) (second a))
+  (define (acc proc f . rest) ; accumulate results of `f`
+    (let ((a '()))
+      (apply proc (lambda args (set! a (cons (apply f args) a))) rest)
+      (reverse a)))
+
+  (define char-add1
+    (compose integer->char add1 char->integer))
+
+  (test-group "string-map"
+    (test-error (string-map "abc"))
+    (test-error (string-map values))
+    (test-error (string-map values '(1 2 3)))
+    (test-error (string-map (constantly 1) "abc"))
+    (test "" (string-map values ""))
+    (test "abc" (string-map values "abc"))
+    (test "aaa" (string-map (constantly #\a) "abc"))
+    (test "bcd" (string-map char-add1 "abc"))
+    (test "abc" (string-map 1st "abc" "123"))
+    (test "123" (string-map 2nd "abc" "123"))
+    (test "abc" (string-map 1st "abc" "123456"))
+    (test "123" (string-map 2nd "abc" "123456")))
+
+  (test-group "string-for-each"
+    (test-error (string-for-each "abc"))
+    (test-error (string-for-each values))
+    (test-error (string-for-each values '(1 2 3)))
+    (test '() (acc string-for-each values ""))
+    (test '(#\a #\b #\c) (acc string-for-each values "abc"))
+    (test '(#\b #\c #\d) (acc string-for-each char-add1 "abc"))
+    (test '((#\a #\1) (#\b #\2) (#\c #\3)) (acc string-for-each list "abc" "123"))
+    (test '(#\1 #\2 #\3) (acc string-for-each 2nd "abc" "123"))
+    (test '(#\a #\b #\c) (acc string-for-each 1st "abc" "123456"))
+    (test '(#\1 #\2 #\3) (acc string-for-each 2nd "abc" "123456")))
+
+  (test-group "vector-map"
+    (test-error (vector-map #(1 2 3)))
+    (test-error (vector-map values))
+    (test-error (vector-map values '(1 2 3)))
+    (test #() (vector-map values #()))
+    (test #(1 2 3) (vector-map values #(1 2 3)))
+    (test #(1 1 1) (vector-map (constantly 1) #(1 2 3)))
+    (test #(2 3 4) (vector-map add1 #(1 2 3)))
+    (test #(1 2 3) (vector-map 1st #(1 2 3) #(4 5 6)))
+    (test #(4 5 6) (vector-map 2nd #(1 2 3) #(4 5 6)))
+    (test #(1 2 3) (vector-map 1st #(1 2 3) #(4 5 6 7 8 9)))
+    (test #(4 5 6) (vector-map 2nd #(1 2 3) #(4 5 6 7 8 9))))
+
+  (test-group "vector-for-each"
+    (test-error (vector-for-each #(1 2 3)))
+    (test-error (vector-for-each values))
+    (test-error (vector-for-each values '(1 2 3)))
+    (test '() (acc vector-for-each values #()))
+    (test '(1 2 3) (acc vector-for-each values #(1 2 3)))
+    (test '(2 3 4) (acc vector-for-each add1 #(1 2 3)))
+    (test '((1 4) (2 5) (3 6)) (acc vector-for-each list #(1 2 3) #(4 5 6)))
+    (test '(4 5 6) (acc vector-for-each 2nd #(1 2 3) #(4 5 6)))
+    (test '(1 2 3) (acc vector-for-each 1st #(1 2 3) #(4 5 6 7 8 9)))
+    (test '(4 5 6) (acc vector-for-each 2nd #(1 2 3) #(4 5 6 7 8 9)))))
+
+(test-group "6.13: Input"
+  (test-assert "read-string returns eof-object for empty string"
+               (eof-object? (with-input-from-string "" (lambda () (read-string 1)))))
+  (test-assert "read-bytevector returns eof-object for empty string"
+               (eof-object? (with-input-from-string "" (lambda () (read-bytevector 1))))))
 
 (define-syntax catch
   (syntax-rules ()

@@ -4,7 +4,6 @@
 (import matchable)
 (use srfi-1 files extras data-structures)
 
-
 (define (parse-library-name name loc)
   (define (fail) (syntax-error loc "invalid library name" name))
   (match name
@@ -29,7 +28,8 @@
   ;;XXX scan include-path?
   (let* ((name2 (parse-library-name name loc))
 	 (sname2 (symbol->string name2)))
-    (or (file-exists? (string-append sname2 ".import.so"))
+    (or (##sys#provided? name2)
+	(file-exists? (string-append sname2 ".import.so"))
 	(file-exists? (string-append sname2 ".import.scm"))
 	(extension-information name2))))
 
@@ -93,19 +93,9 @@
 			`(##core#require-extension (,name) #f))))
 		(strip-syntax (cdr x))))))))
 
-(define (current-source-directory)
-  (pathname-directory
-   (or (and (feature? #:compiling) ##compiler#source-filename)
-       ##sys#current-source-filename)))
-
 (define (read-forms filename ci?)
-  (read-file 
-   (if (absolute-pathname? filename)
-       filename
-       (make-pathname (current-source-directory) filename))
-   (lambda (port)
-     (parameterize ((case-sensitive ci?))
-       (read port)))))
+  (parameterize ((case-sensitive (not ci?)))
+    (##sys#include-forms-from-file filename)))
 
 (define (parse-library-definition form dummy-export)	; expects stripped syntax
   (match form
@@ -148,11 +138,11 @@
 	      ,(parse-decls more)))
 	   ((('include fnames ...) . more)
 	    `(##core#begin
-	      ,@(process-includes fnames #f)
+	      ,(process-includes fnames #f)
 	      ,(parse-decls more)))
 	   ((('include-ci fnames ...) . more)
 	    `(##core#begin
-	      ,@(process-includes fnames #t)
+	      ,(process-includes fnames #t)
 	      ,(parse-decls more)))
 	   ((('include-library-declarations fnames ...) . more)
 	    `(##core#begin
@@ -164,7 +154,7 @@
 	      ,(parse-decls more)))
 	   ((('begin code ...) . more)
 	    `(##core#begin 
-	      (##core#begin ,@code) 
+	      ,@code
 	      ,(parse-decls more)))
 	   (decl (syntax-error 'define-library "invalid library declaration" decl))))
        `(##core#begin
