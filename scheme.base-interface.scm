@@ -140,6 +140,7 @@
   string-ref string-set!
   string=? string<? string>? string<=? string>=?
   string?
+  substring
   symbol=?
   symbol?
   syntax-error
