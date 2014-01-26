@@ -45,6 +45,7 @@
   (define (check test)
     (match test
       ('else #t)
+      (('not test) (not (check test)))
       (('and tests ...) (every check tests))
       (('or tests ...) (any check tests))
       (('library name) (locate-library name 'cond-expand))
