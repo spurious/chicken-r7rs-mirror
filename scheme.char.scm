@@ -2,8 +2,9 @@
 		     string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?
                      char-alphabetic? char-numeric? char-whitespace?
                      char-upper-case? char-lower-case?
-                     ;; char-foldcase ; TODO
+                     ;; char-foldcase string-foldcase ; TODO
                      char-upcase char-downcase
+		     string-upcase string-downcase
 		     digit-value)
 
 (import
@@ -15,6 +16,9 @@
 	  char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=?
 	  string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?)
     %))
+
+(require-library srfi-13)
+(import (only srfi-13 string-upcase string-downcase))
 
 (import chicken)
 (require-extension r7rs-compile-time)
