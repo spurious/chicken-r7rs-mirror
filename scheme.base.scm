@@ -720,10 +720,14 @@
 (define peek-u8
   (case-lambda
     (()
-     (char->integer (peek-char)))
+     (let ((c (peek-char)))
+       (if (eof-object? c) c
+           (char->integer c))))
     ((port)
      (##sys#check-input-port port #t 'peek-u8)
-     (char->integer (peek-char port)))))
+     (let ((c (peek-char port)))
+       (if (eof-object? c) c
+           (char->integer c))))))
 
 (define read-string
   (let ((read-string/eof (lambda (k port)
