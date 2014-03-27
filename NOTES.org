@@ -29,3 +29,7 @@ NOTES
 
 * get-environment-variable: "It is also an error to mutate the resulting string" ...
   - can we just ignore this?
+
+* In R7RS parameter-values are not inherited from parent threads. This
+  will require changes in core, possibly with some sort of backwards-compatibility mode.
+
