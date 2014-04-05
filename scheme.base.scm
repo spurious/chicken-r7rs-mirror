@@ -23,6 +23,8 @@
                 (make-u8vector make-bytevector)
                 (write-u8vector write-bytevector)))
 
+(import (only ports make-input-port make-output-port))
+
 (%include "scheme.base-interface.scm")
 
 ;; For syntax definition helpers.
@@ -783,5 +785,28 @@
        (read-u8vector!/eof #f bv port start))
       ((bv port start end)
        (read-u8vector!/eof (fx- end start) bv port start)))))
+
+(define (open-input-bytevector bv)
+  (let ((index 0)
+        (bv-len (bytevector-length bv)))
+    (make-input-port
+     (lambda () ; read-char
+       (if (= index bv-len)
+           (eof-object)
+           (let ((c (bytevector-u8-ref bv index)))
+             (set! index (+ index 1))
+             (integer->char c))))
+     (lambda () ; char-ready?
+       (not (= index bv-len)))
+     (lambda () #t) ; close
+     (lambda () ; peek-char
+       (if (= index bv-len)
+           (eof-object)
+           (bytevector-u8-ref bv index))))))
+
+(define (open-output-bytevector) (open-output-string))
+
+(define (get-output-bytevector p)
+  (string->utf8 (get-output-string p)))
 
 )

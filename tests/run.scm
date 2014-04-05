@@ -973,6 +973,21 @@
                  (import (scheme base))
                  (begin (eq? numbers#+ +)))))
 
+
+(test-group "open-input-bytevector"
+  (test (bytevector 0 1 2 10 13 40 41 42 128 140 240 255)
+        (let ((bv (bytevector 0 1 2 10 13 40 41 42 128 140 240 255)))
+          (read-bytevector 12 (open-input-bytevector bv)))))
+
+(test-group "open-output-bytevector"
+  (test (bytevector 0 1 2 10 13 40 41 42 128 140 240 255)
+        (let ((p (open-output-bytevector)))
+          (write-bytevector (bytevector 0 1 2 10 13) p)
+          (write-bytevector (bytevector 40 41 42 128) p)
+          (write-bytevector (bytevector 140 240 255) p)
+          (close-output-port p)
+          (get-output-bytevector p))))
+
 (test-end "r7rs tests")
 
 (test-exit)
