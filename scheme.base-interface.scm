@@ -58,9 +58,7 @@
   flush-output-port
   for-each
   gcd lcm
-  #|
   get-output-bytevector
-  |#
   get-output-string
   guard
   if
@@ -96,9 +94,7 @@
   null?
   number->string string->number
   number?
-  #|
   open-input-bytevector open-output-bytevector
-  |#
   open-input-string open-output-string
   or
   pair?
