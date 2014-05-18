@@ -2,7 +2,7 @@
 		     string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?
                      char-alphabetic? char-numeric? char-whitespace?
                      char-upper-case? char-lower-case?
-                     ;; char-foldcase string-foldcase ; TODO
+		     char-foldcase string-foldcase
                      char-upcase char-downcase
 		     string-upcase string-downcase
 		     digit-value)
@@ -18,7 +18,7 @@
     %))
 
 (require-library srfi-13)
-(import (only srfi-13 string-upcase string-downcase))
+(import (only srfi-13 string-map string-upcase string-downcase))
 
 (import chicken)
 (require-extension r7rs-compile-time)
@@ -47,8 +47,13 @@
 (define-extended-arity-comparator string-ci<=? %string-ci<=? ##sys#check-string)
 (define-extended-arity-comparator string-ci>=? %string-ci>=? ##sys#check-string)
 
-(: digit-value (char -> (or fixnum boolean)))
+(: char-foldcase (char --> char))
+(define (char-foldcase c) (char-downcase c))
 
+(: string-foldcase (string --> string))
+(define (string-foldcase s) (string-map char-foldcase s))
+
+(: digit-value (char --> (or fixnum boolean)))
 (define (digit-value c)
   (let ((i (char->integer c)))
     (and (fx>= i 48) (fx<= i 57) (fx- i 48)))))
