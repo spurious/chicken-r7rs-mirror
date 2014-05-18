@@ -1,8 +1,12 @@
 (module scheme.time (current-second
 		     current-jiffy
 		     jiffies-per-second)
-  (import scheme)
-  (import (rename chicken (current-seconds current-second)))
-  ;; sic, XXX, TODO, etc.
-  (define current-jiffy current-second)
-  (define (jiffies-per-second) 1))
+  (import (only scheme define inexact->exact)
+	  (rename (only chicken current-seconds current-milliseconds :)
+		  (current-seconds current-second)))
+
+  (: current-jiffy (--> fixnum))
+  (define (current-jiffy) (inexact->exact (current-milliseconds)))
+
+  (: jiffies-per-second (--> fixnum))
+  (define (jiffies-per-second) 1000))
