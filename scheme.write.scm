@@ -3,7 +3,7 @@
 		      write-shared
 		      write-simple)
   (import (rename scheme (display display-simple) (write write-simple))
-	  (only chicken foldl fx+ fx= fx<= optional when))
+	  (only chicken : foldl fx+ fx= fx<= optional when))
 
   (define (interesting? o)
     (or (pair? o)
