@@ -4,7 +4,7 @@
 (use make srfi-1)
 
 (define scheme-modules
-  '("case-lambda" "char" "complex" "cxr" "eval" "file" "inexact" "lazy" "load" "process-context" "r5rs" "read" "repl" "time" "write")) ;XXX
+  '("case-lambda" "char" "complex" "cxr" "eval" "file" "inexact" "lazy" "load" "process-context" "r5rs" "read" "repl" "time" "write"))
 
 (make (("r7rs-compile-time.so" ("r7rs-compile-time.scm" "r7rs-compile-time-module.scm")
 	(compile -s -O3 -d1 r7rs-compile-time-module.scm -J -o r7rs-compile-time.so)
