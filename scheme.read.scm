@@ -1,6 +1,6 @@
 (module scheme.read (read)
   (import (except scheme read)
-	  (only chicken current-read-table fx+ fx= optional unless when))
+	  (only chicken : current-read-table fx+ fx= optional unless when))
 
   (define (data? o)
     (not (procedure? o)))
