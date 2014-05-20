@@ -47,13 +47,13 @@
 (define-extended-arity-comparator string-ci<=? %string-ci<=? ##sys#check-string)
 (define-extended-arity-comparator string-ci>=? %string-ci>=? ##sys#check-string)
 
-(: char-foldcase (char --> char))
+(: char-foldcase (char -> char))
 (define (char-foldcase c) (char-downcase c))
 
-(: string-foldcase (string --> string))
+(: string-foldcase (string -> string))
 (define (string-foldcase s) (string-map char-foldcase s))
 
-(: digit-value (char --> (or fixnum boolean)))
+(: digit-value (char -> (or fixnum boolean)))
 (define (digit-value c)
   (let ((i (char->integer c)))
     (and (fx>= i 48) (fx<= i 57) (fx- i 48)))))
