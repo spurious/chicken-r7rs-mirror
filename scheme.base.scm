@@ -6,8 +6,7 @@
                        assoc list-set! list-tail member
                        char=? char<? char>? char<=? char>=?
                        string=? string<? string>? string<=? string>=?
-                       string-copy string->list
-                       vector->list))
+                       string-copy string->list vector->list))
 (import (prefix (only scheme char=? char<? char>? char<=? char>=?
                              string=? string<? string>? string<=? string>=?)
                 %))
@@ -22,8 +21,6 @@
                 (u8vector? bytevector?)
                 (make-u8vector make-bytevector)
                 (write-u8vector write-bytevector)))
-
-(import (only ports make-input-port make-output-port))
 
 (%include "scheme.base-interface.scm")
 
@@ -52,6 +49,9 @@
 (require-library srfi-13)
 (import (prefix (only srfi-13 string-for-each string-map) %))
 (import (only srfi-13 string-copy string-copy! string-fill! string->list))
+
+;; For d-r-t redefinition.
+(import-for-syntax (only chicken define-record-type))
 
 ;;;
 ;;; 4.1.7. Inclusion
@@ -144,6 +144,26 @@
                     (apply values args))))))))))))))
 
 ;;;
+;;; 5.5 Record-type definitions
+;;;
+
+;; Rewrite the standard d-r-t expansion so that each newly-defined
+;; record type has a unique type tag. This is every kind of hacky.
+(define-syntax define-record-type
+  (wrap-er-macro-transformer
+   'define-record-type
+   (lambda (e r c define-record-type)
+     (let ((name (cadr e))
+           (tag  (gensym "\x04r7rsrecord-type-tag")))
+       `(##core#begin
+         (##core#set! ,(r tag)
+          (##sys#make-symbol ,(symbol->string name)))
+         ,(let lp ((x (define-record-type e)))
+            (cond ((equal? x `(##core#quote ,name)) (r tag))
+                  ((pair? x) (cons (lp (car x)) (lp (cdr x))))
+                  (else x))))))))
+
+;;;
 ;;; 6.2.6 Numerical operations
 ;;;
 
@@ -155,21 +175,9 @@
 ;;; 6.3 Booleans
 ;;;
 
-;(: boolean=? ((procedure #:enforce) (boolean boolean #!rest boolean) boolean))
 (: boolean=? (boolean boolean #!rest boolean -> boolean))
 
-(define (boolean=? b1 b2 . rest)
-  (##sys#check-boolean b1 'boolean=?)
-  ;; Loop across all args, checking for booleans.  Don't shortcut and
-  ;; stop when we find nonequality.
-  (let lp ((b1 b1)
-           (b2 b2)
-           (rest rest)
-           (result (eq? b1 b2)))
-    (##sys#check-boolean b2 'boolean=?)
-    (if (null? rest)
-        (and result (eq? b1 b2))
-        (lp b2 (car rest) (cdr rest) (and result (eq? b1 b2))))))
+(define-extended-arity-comparator boolean=? eq? ##sys#check-boolean)
 
 
 ;;;
@@ -647,7 +655,7 @@
 (: error-object-message ((struct condition) -> string))
 (: error-object-irritants ((struct condition) -> list))
 
-(define error-object? condition?)
+(define (error-object? o) (condition? o))
 (define error-object-message (condition-property-accessor 'exn 'message))
 (define error-object-irritants (condition-property-accessor 'exn 'arguments))
 
@@ -675,7 +683,7 @@
 ;;; 6.13. Input and Output
 ;;;
 
-(: binary-port? (* --> boolean))
+(: binary-port? (* --> boolean : port?))
 (: call-with-port (port (port -> . *) -> . *))
 (: close-port (port -> void))
 (: eof-object (--> eof))
@@ -686,15 +694,14 @@
 (: read-bytevector! (bytevector #!optional input-port number number -> fixnum))
 (: read-string (number #!optional input-port -> (or string eof)))
 (: read-u8 (#!optional input-port -> fixnum))
-(: textual-port? (* --> boolean))
+(: textual-port? (* --> boolean : port?))
 (: u8-ready? (#!optional input-port -> boolean))
 (: write-string (string #!optional input-port fixnum fixnum -> void))
 (: write-u8 (fixnum #!optional output-port -> void))
 
-;; sic, TODO
-
-(define binary-port? port?)
-(define textual-port? port?)
+;; CHICKEN's ports can handle both.
+(define (binary-port? port) (port? port))
+(define (textual-port? port) (port? port))
 
 (define (call-with-port port proc)
   (receive ret
@@ -713,6 +720,7 @@
 (define (output-port-open? port)
   (##sys#check-output-port port #f 'output-port-open?)
   (not (port-closed? port)))
+
 (define (input-port-open? port)
   (##sys#check-input-port port #f 'input-port-open?)
   (not (port-closed? port)))
@@ -787,22 +795,33 @@
        (read-u8vector!/eof (fx- end start) bv port start)))))
 
 (define (open-input-bytevector bv)
-  (let ((index 0)
-        (bv-len (bytevector-length bv)))
-    (make-input-port
-     (lambda () ; read-char
-       (if (= index bv-len)
-           (eof-object)
-           (let ((c (bytevector-u8-ref bv index)))
-             (set! index (+ index 1))
-             (integer->char c))))
-     (lambda () ; char-ready?
-       (not (= index bv-len)))
-     (lambda () #t) ; close
-     (lambda () ; peek-char
-       (if (= index bv-len)
-           (eof-object)
-           (bytevector-u8-ref bv index))))))
+  (let ((port (##sys#make-port #t #f "(bytevector)" 'custom)))
+    (##sys#setslot
+     port
+     2
+     (let ((index 0)
+           (bv-len (bytevector-length bv)))
+       (vector (lambda (_) ; read-char
+                 (if (fx= index bv-len)
+                     (eof-object)
+                     (let ((c (bytevector-u8-ref bv index)))
+                       (set! index (fx+ index 1))
+                       (integer->char c))))
+               (lambda (_) ; peek-char
+                 (if (fx= index bv-len)
+                     (eof-object)
+                     (bytevector-u8-ref bv index)))
+               #f    ; write-char
+               #f    ; write-string
+               (lambda (_) ; close
+                 (##sys#setislot port 8 #t))
+               #f    ; flush-output
+               (lambda (_) ; char-ready?
+                 (not (fx= index bv-len)))
+               #f    ; read-string!
+               #f    ; read-line
+               #f))) ; read-buffered
+     port))
 
 (define (open-output-bytevector) (open-output-string))
 

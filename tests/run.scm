@@ -973,6 +973,12 @@
                  (import (scheme base))
                  (begin (eq? numbers#+ +)))))
 
+(test-group "define-record-type"
+  (define-record-type foo (make-foo) foo?)
+  (define foo (make-foo))
+  (test-assert "Record instances satisfy their predicates" (foo? foo))
+  (define-record-type foo (make-foo) foo?)
+  (test-assert "Record type definitions are generative" (not (foo? foo))))
 
 (test-group "open-input-bytevector"
   (test (bytevector 0 1 2 10 13 40 41 42 128 140 240 255)

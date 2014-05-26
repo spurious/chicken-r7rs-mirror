@@ -3,6 +3,7 @@
 			   process-cond-expand
 			   fixup-import/export-spec
 			   parse-library-name
+			   wrap-er-macro-transformer
 			   import-transformer
 			   read-forms
 			   register-r7rs-module

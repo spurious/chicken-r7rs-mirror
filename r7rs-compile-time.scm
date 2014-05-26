@@ -80,19 +80,26 @@
     (else
      (syntax-error loc "invalid import/export specifier" spec))))
 
-(define (import-transformer type)
+(define (wrap-er-macro-transformer name handler)
   (er-macro-transformer
-   (let ((%import (caddr (assq type (##sys#macro-environment))))) ; XXX safe?
+   (let ((orig (caddr (assq name (##sys#macro-environment)))))
      (lambda (x r c)
-       `(##core#begin
-	 ,@(map (lambda (spec)
-		  (let ((spec (fixup-import/export-spec spec type))
-			(name (import/export-spec-feature-name spec type)))
-		    (%import (list type spec) '() (##sys#current-environment))
-		    (if (memq name '(scheme foreign)) ; XXX others?
-			'(##core#undefined)
-			`(##core#require-extension (,name) #f))))
-		(strip-syntax (cdr x))))))))
+       (let ((e (##sys#current-environment)))
+         (handler x r c (lambda (x*) (orig x* '() e))))))))
+
+(define (import-transformer type)
+  (wrap-er-macro-transformer
+   type
+   (lambda (x r c import)
+     `(##core#begin
+       ,@(map (lambda (spec)
+                (let ((spec (fixup-import/export-spec spec type))
+                      (name (import/export-spec-feature-name spec type)))
+                  (import (list type spec))
+                  (if (memq name '(scheme foreign)) ; XXX others?
+                      '(##core#undefined)
+                      `(##core#require-extension (,name) #f))))
+              (strip-syntax (cdr x)))))))
 
 (define (read-forms filename ci?)
   (parameterize ((case-sensitive (not ci?)))
@@ -162,7 +169,7 @@
 	 (##core#module
 	  ,real-name ((,dummy-export))
 	  ;; gruesome hack: we add a dummy export for adding indirect exports
-	  (##core#define-syntax ,dummy-export (##core#lambda () #f))
+	  (##core#define-syntax ,dummy-export (##core#lambda _ '(##core#undefined)))
 	  ;; Another gruesome hack: provide feature so "use" works properly
 	  (##sys#provide (##core#quote ,real-name))
 	  ;; Set up an R7RS environment for the module's body.
@@ -172,7 +179,7 @@
     (_ (syntax-error 'define-library "invalid library definition" form))))
 
 (define (register-r7rs-module name)
-  (let ((dummy (string->symbol (string-append (symbol->string name) "-dummy-export"))))
+  (let ((dummy (string->symbol (conc "\x04r7rs" name))))
     (put! name '##r7rs#module dummy)
     dummy))
 

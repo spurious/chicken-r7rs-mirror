@@ -7,7 +7,7 @@
   apply
   assoc assq assv
   begin
-  binary-port? ; XXX
+  binary-port?
   boolean? boolean=?
   bytevector
   bytevector-append 
@@ -33,9 +33,9 @@
   cons
   current-input-port current-output-port current-error-port
   define
-  define-record-type ; TODO
+  define-record-type
   define-syntax
-  define-values ; TODO
+  define-values
   denominator numerator
   do
   dynamic-wind
@@ -143,7 +143,7 @@
   #|
   syntax-rules ; provided by the "r7rs" module
   |#
-  textual-port? ; XXX
+  textual-port?
   truncate
   truncate/ truncate-quotient truncate-remainder
   u8-ready?
