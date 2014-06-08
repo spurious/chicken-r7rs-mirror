@@ -7,6 +7,8 @@
 		     string-upcase string-downcase
 		     digit-value)
 
+(import chicken)
+(import r7rs-support)
 (import
   (except scheme
 	  char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=?
@@ -19,9 +21,6 @@
 
 (require-library srfi-13)
 (import (only srfi-13 string-map string-upcase string-downcase))
-
-(import chicken)
-(require-extension r7rs-compile-time)
 
 (: char-ci=? (char char #!rest char -> boolean))
 (: char-ci<? (char char #!rest char -> boolean))

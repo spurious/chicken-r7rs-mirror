@@ -15,11 +15,12 @@
   (reexport
    (except scheme
 	   null-environment scheme-report-environment eval
-	   and begin begin-for-syntax case cond cond-expand define
-	   define-syntax delay delay-force do else export if lambda let
-	   let* let-syntax letrec letrec* letrec-syntax module or
-	   quasiquote quote reexport require-extension
-	   require-extension-for-syntax require-library set! syntax))
+	   and begin begin-for-syntax case cond cond-expand
+	   define define-syntax delay delay-force do export if
+	   import import-for-syntax lambda let let* let-syntax
+	   letrec letrec* letrec-syntax module or quasiquote quote
+	   reexport require-extension require-extension-for-syntax
+	   require-library set! syntax syntax-rules))
 
   (define-constant null-environment-identifiers
     '(and begin case cond cond-expand define define-syntax delay

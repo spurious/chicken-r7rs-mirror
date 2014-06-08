@@ -15,10 +15,6 @@ NOTES
 
 * Should bytevectors be implemented over blobs instead of srfi-4 (or something else)?
 
-* I think library forms (i.e. ".sld" files) should look for includes relative to themselves
-  - this seems to be the standard amongst other Schemes that support R7RS-style libs
-  - not sure how to get that info when expanding define-library
-
 * get-environment-variable: "It is also an error to mutate the resulting string" ...
   - can we just ignore this?
 

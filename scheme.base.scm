@@ -1,16 +1,20 @@
 (module scheme.base ()
 
-(import (except chicken with-exception-handler include
-                        quotient remainder modulo vector-copy!))
+(import (rename (except chicken modulo quotient remainder
+                                vector-copy!
+                                with-exception-handler)
+                (features feature-keywords)))
+
 (import (except scheme syntax-rules cond-expand
                        assoc list-set! list-tail member
                        char=? char<? char>? char<=? char>=?
                        string=? string<? string>? string<=? string>=?
-                       string-copy string->list vector->list))
+                       string-copy string->list vector->list vector-fill!))
+
 (import (prefix (only scheme char=? char<? char>? char<=? char>=?
                              string=? string<? string>? string<=? string>=?)
                 %))
-(import (rename (only chicken include) (include %include)))
+
 (import (rename (only srfi-4 make-u8vector subu8vector u8vector u8vector?
                              u8vector-length u8vector-ref u8vector-set!
                              read-u8vector read-u8vector! write-u8vector)
@@ -22,12 +26,14 @@
                 (make-u8vector make-bytevector)
                 (write-u8vector write-bytevector)))
 
-(%include "scheme.base-interface.scm")
+(include "scheme.base-interface.scm")
 
 ;; For syntax definition helpers.
-(begin-for-syntax (require-library r7rs-compile-time))
+(import-for-syntax r7rs-support)
 (import-for-syntax r7rs-compile-time)
-(import r7rs-compile-time)
+(begin-for-syntax
+  (require-library r7rs-compile-time))
+(import r7rs-support)
 (import numbers)
 
 ;; read/write-string/line/byte
@@ -57,28 +63,14 @@
 ;;; 4.1.7. Inclusion
 ;;;
 
-(define-syntax include
-  (er-macro-transformer
-   (lambda (e r c)
-     (cons (r 'begin)
-           (append-map (cut read-forms <> #f) (cdr e))))))
-
-(define-syntax include-ci
-  (er-macro-transformer
-   (lambda (e r c)
-     (cons (r 'begin)
-           (append-map (cut read-forms <> #t) (cdr e))))))
+(define-syntax include r7rs-include)
+(define-syntax include-ci r7rs-include-ci)
 
 ;;;
 ;;; 4.2.1. Conditionals
 ;;;
 
-(define-syntax cond-expand
-  (er-macro-transformer
-   (lambda (x r c)
-     (cons (r 'begin)
-	   (process-cond-expand (cdr x))))))
-
+(define-syntax cond-expand r7rs-cond-expand)
 
 ;;;
 ;;; 4.2.7. Exception handling
@@ -267,16 +259,18 @@
             (else (lp (cdr lst))))))))
 
 
-(: list-copy (forall (a) ((list-of a) -> (list-of a))))
+(: list-copy (forall (a) (a -> a)))
 
 ;; TODO: Test if this is the quickest way to do this, or whether we
 ;; should just cons recursively like our SRFI-1 implementation does.
 (define (list-copy lst)
-  (let lp ((res '())
-           (lst lst))
-    (if (null? lst)
-        (##sys#fast-reverse res)
-        (lp (cons (car lst) res) (cdr lst)))))
+  (cond ((pair? lst)
+         (let lp ((res '())
+                  (lst lst))
+           (if (pair? lst)
+               (lp (cons (car lst) res) (cdr lst))
+               (append (##sys#fast-reverse res) lst))))
+        (else lst)))
 
 ;;;
 ;;; 6.5 Symbols
@@ -364,6 +358,7 @@
 (: vector-append (#!rest vector -> vector))
 (: vector-copy (forall (a) ((vector-of a) #!optional fixnum fixnum -> (vector-of a))))
 (: vector-copy! (vector fixnum vector #!optional fixnum fixnum -> undefined))
+(: vector-fill! (vector * #!optional fixnum fixnum -> undefined))
 (: vector->list (forall (a) ((vector-of a) #!optional fixnum fixnum -> (list-of a))))
 
 (define vector-copy
@@ -402,6 +397,21 @@
       ((to at from) (copy! to at from 0))
       ((to at from start) (copy! to at from start))
       ((to at from start end) (copy! to at from start end)))))
+
+(define vector-fill!
+  (let ((fill! (lambda (v f start . end)
+                 (##sys#check-vector v 'vector-fill!)
+                 (let* ((len (##sys#size v))
+                        (end (optional end len)))
+                   (##sys#check-range start 0 (fx+ end 1) 'vector-fill!)
+                   (##sys#check-range end start (fx+ len 1) 'vector-fill!)
+                   (do ((i start (fx+ i 1)))
+                       ((fx= i end))
+                     (##sys#setslot v i f))))))
+    (case-lambda
+      ((v f) (fill! v f 0))
+      ((v f start) (fill! v f start))
+      ((v f start end) (fill! v f start end)))))
 
 (define vector->list
   (let ((v->l (lambda (v start . end)
@@ -504,7 +514,7 @@
                   (let ((s (##sys#make-string (fx- end start))))
                     (do ((si 0 (fx+ si 1))
                          (vi start (fx+ vi 1)))
-                        ((fx= si end) s)
+                        ((fx= vi end) s)
                       (##sys#setbyte s si (bytevector-u8-ref bv vi))))))))
     (case-lambda
       ((bv) (bv->s bv 0))
@@ -521,7 +531,7 @@
                   (let ((bv (make-bytevector (fx- end start))))
                     (do ((vi 0 (fx+ vi 1))
                          (si start (fx+ si 1)))
-                        ((fx= vi end) bv)
+                        ((fx= si end) bv)
                       (bytevector-u8-set! bv vi (##sys#byte s si))))))))
     (case-lambda
       ((s) (s->bv s 0))
@@ -532,10 +542,10 @@
 ;;; 6.10. Control features
 ;;;
 
-(: string-for-each ((char -> *) string #!rest string -> void))
-(: string-map ((char -> char) string #!rest string -> string))
-(: vector-for-each ((* -> *) vector #!rest vector -> void))
-(: vector-map ((* -> *) vector #!rest vector -> vector))
+(: string-for-each ((char #!rest char -> *) string #!rest string -> void))
+(: string-map ((char #!rest char -> char) string #!rest string -> string))
+(: vector-for-each ((* #!rest * -> *) vector #!rest vector -> void))
+(: vector-map ((* #!rest * -> *) vector #!rest vector -> vector))
 
 (define string-map
   (case-lambda
@@ -651,7 +661,7 @@
         (lambda ()
           ((cadr exception-handlers) obj))))))
 
-(: error-object? (* --> boolean : (struct condition)))
+(: error-object? (* -> boolean : (struct condition)))
 (: error-object-message ((struct condition) -> string))
 (: error-object-irritants ((struct condition) -> list))
 
@@ -696,7 +706,7 @@
 (: read-u8 (#!optional input-port -> fixnum))
 (: textual-port? (* --> boolean : port?))
 (: u8-ready? (#!optional input-port -> boolean))
-(: write-string (string #!optional input-port fixnum fixnum -> void))
+(: write-string (string #!optional output-port fixnum fixnum -> void))
 (: write-u8 (fixnum #!optional output-port -> void))
 
 ;; CHICKEN's ports can handle both.
@@ -828,4 +838,13 @@
 (define (get-output-bytevector p)
   (string->utf8 (get-output-string p)))
 
-)
+;;;
+;;; 6.14. System interface
+;;;
+
+(: features (--> (list-of symbol)))
+
+(define (features)
+  (map (lambda (s)
+         (##sys#string->symbol (##sys#symbol->string s)))
+       (feature-keywords))))

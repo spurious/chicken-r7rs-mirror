@@ -128,7 +128,7 @@
                                         0
                                         ellipsis?
                                         (meta-variables pattern 0 ellipsis? '() #f)))))
-         (%syntax-error "ill-formed syntax rule" rule)))
+         (##sys#syntax-error "ill-formed syntax rule" rule)))
 
    ;; Generate code to test whether input expression matches pattern
 
@@ -209,12 +209,13 @@
               (if probe
                   (if (<= (cdr probe) dim)
                       template
-                      (%syntax-error "template dimension error (too few ellipses?)"
-                                     template))
+                      (##sys#syntax-error-hook
+                       "template dimension error (too few ellipses?)"
+                       template))
                   `(,%rename (##core#syntax ,template)))))
            ((ellipsis-escaped-pattern? template el?)
             (if (or (not (pair? (cdr template))) (pair? (cddr template)))
-                (%syntax-error "Invalid escaped ellipsis template" template)
+                (##sys#syntax-error-hook "Invalid escaped ellipsis template" template)
                 (process-template (cadr template) dim (lambda _ #f) env)))
            ((segment-template? template el?)
             (let* ((depth (segment-depth template el?))
@@ -222,7 +223,7 @@
                    (vars
                     (free-meta-variables (car template) seg-dim el? env '())))
               (if (null? vars)
-                  (%syntax-error "too many ellipses" template)
+                  (##sys#syntax-error-hook "too many ellipses" template)
                   (let* ((x (process-template (car template) seg-dim el? env))
                          (gen (if (and (pair? vars)
                                        (null? (cdr vars))
@@ -295,9 +296,9 @@
      (and (segment-template? p el?)
           (cond
            (seen-segment?
-            (%syntax-error "Only one segment per level is allowed" p))
+            (##sys#syntax-error-hook "Only one segment per level is allowed" p))
            ((not (list? p))             ; Improper list
-            (%syntax-error "Cannot combine dotted tail and ellipsis" p))
+            (##sys#syntax-error-hook "Cannot combine dotted tail and ellipsis" p))
            (else #t))))
 
    (define (segment-template? pattern el?)

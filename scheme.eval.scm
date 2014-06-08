@@ -2,7 +2,7 @@
 		     environment)
 
   (import (rename scheme (eval %eval)) chicken)
-  (import r7rs-compile-time)
+  (use r7rs-library)
 
 ;;;
 ;;; 6.12. Environments and evaluation
@@ -12,7 +12,7 @@
 
   (define (eval expr env) (%eval expr env))
 
-  (: environment (list -> (struct environment)))
+  (: environment (#!rest list -> (struct environment)))
 
   (define (environment . specs)
     (let ((name (gensym "environment-module-")))
@@ -29,7 +29,7 @@
 			 specs)))
 	 (let ((mod (##sys#find-module name)))
 	   (##sys#make-structure 'environment
-	    name
+	    (cons 'import specs)
 	    (let ((env (##sys#slot mod 13)))
 	      (append (car env) (cdr env))) ; combine env and syntax bindings
 	    #t)))

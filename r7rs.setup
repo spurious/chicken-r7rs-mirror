@@ -6,10 +6,18 @@
 (define scheme-modules
   '("case-lambda" "char" "complex" "cxr" "eval" "file" "inexact" "lazy" "load" "process-context" "r5rs" "read" "repl" "time" "write"))
 
-(make (("r7rs-compile-time.so" ("r7rs-compile-time.scm" "r7rs-compile-time-module.scm")
+(make (("r7rs-support.so" ("r7rs-support.scm")
+	(compile -s -O3 -d1 r7rs-support.scm -J)
+	(compile -s -O3 -d0 r7rs-support.import.scm))
+       ("r7rs-library.so" ("r7rs-library.scm")
+	(compile -s -O3 -d1 r7rs-library.scm -J)
+	(compile -s -O3 -d0 r7rs-library.import.scm))
+       ("r7rs-compile-time.so"
+	("r7rs-compile-time.scm" "r7rs-compile-time-module.scm" "r7rs-library.so" "r7rs-support.so")
 	(compile -s -O3 -d1 r7rs-compile-time-module.scm -J -o r7rs-compile-time.so)
 	(compile -s -O3 -d0 r7rs-compile-time.import.scm))
-       ("scheme.base.so" ("scheme.base.scm" "scheme.base-interface.scm")
+       ("scheme.base.so"
+	("scheme.base.scm" "scheme.base-interface.scm" "r7rs-support.so")
 	(compile -s -O3 -d1 scheme.base.scm -J -emit-type-file scheme.base.types)
 	(compile -s -O3 -d0 scheme.base.import.scm)))
   '("r7rs-compile-time.so" "scheme.base.so"))
@@ -33,6 +41,8 @@
 (install-extension
  'r7rs
  `("r7rs.so" "r7rs.import.so" 
+   "r7rs-support.so" "r7rs-support.import.so"
+   "r7rs-library.so" "r7rs-library.import.so"
    "r7rs-compile-time.so" "r7rs-compile-time.import.so"
    "scheme.base.so" "scheme.base.import.so" "scheme.base.types"
    ,@(append-map

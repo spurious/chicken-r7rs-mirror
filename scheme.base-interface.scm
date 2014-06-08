@@ -35,7 +35,7 @@
   define
   define-record-type
   define-syntax
-  define-values
+  define-values ; TODO
   denominator numerator
   do
   dynamic-wind
@@ -155,6 +155,7 @@
   vector
   vector-append
   vector-copy vector-copy!
+  vector-fill!
   vector-for-each
   vector-length
   vector-map
