@@ -1,11 +1,13 @@
 (module r7rs (define-library import import-for-syntax export syntax-rules)
 
   (import (except scheme syntax-rules))	;XXX except ...
-  (import (only chicken feature? include)) ;XXX except ...
+  (import (only chicken feature? include register-feature!))
 
   ;; For syntax definition helpers.
-  (import-for-syntax r7rs-compile-time matchable)
-  (begin-for-syntax (require-library r7rs-compile-time))
+  (import-for-syntax matchable)
+  (import-for-syntax r7rs-compile-time)
+  (begin-for-syntax
+    (require-library r7rs-compile-time))
 
   ;; For extended number literals.
   (if (feature? 'compiler-extension)
@@ -52,8 +54,8 @@
 ;;; 5.2. Import declarations
 ;;;
 
-(define-syntax import (import-transformer 'import))
-(define-syntax import-for-syntax (import-transformer 'import-for-syntax))
+(define-syntax import r7rs-import)
+(define-syntax import-for-syntax r7rs-import-for-syntax)
 
 ;;;
 ;;; 5.4. Syntax definitions
@@ -64,11 +66,10 @@
 ;;; 5.6.1. Libraries
 ;;;
 
-(define-syntax define-library
-  (er-macro-transformer
-   (lambda (x r c)
-     (match (strip-syntax x)
-       ((_ name decls ...)
-	(let ((dummy (register-r7rs-module (parse-library-name name 'define-library))))
-	  (parse-library-definition x dummy)))
-       (_ (syntax-error 'define-library "invalid library definition" x)))))))
+(define-syntax define-library r7rs-define-library)
+
+;;;
+;;; Appendix B. Standard feature identifiers
+;;;
+
+(register-feature! #:r7rs))

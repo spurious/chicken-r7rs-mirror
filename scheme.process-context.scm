@@ -5,7 +5,7 @@
 				get-environment-variables)
 
   (import scheme 
-	  (rename chicken (exit chicken:exit))
+	  (rename chicken (exit chicken-exit))
 	  foreign)
 
 ;;;
@@ -56,9 +56,8 @@ extern char **environ;
 (define exit
   (case-lambda
     (()
-     (chicken:exit 0))
+     (exit 0))
     ((obj)
-     (##sys#cleanup-before-exit)
      ;; ##sys#dynamic-unwind is hidden, have to unwind manually.
      ; (##sys#dynamic-unwind '() (length ##sys#dynamic-winds))
      (let unwind ()
@@ -67,7 +66,8 @@ extern char **environ;
            (set! ##sys#dynamic-winds (cdr ##sys#dynamic-winds))
            (after)
            (unwind))))
-     (##core#inline "C_exit_runtime" (->exit-status obj)))))
+     ;; The built-in exit runs cleanup handlers for us.
+     (chicken-exit (->exit-status obj)))))
 
 (define emergency-exit
   (case-lambda

@@ -2,33 +2,16 @@
 
 
 (import matchable)
-(use srfi-1 files extras data-structures)
-
-(define (parse-library-name name loc)
-  (define (fail) (syntax-error loc "invalid library name" name))
-  (match name
-    ((? symbol?) name)
-    ;; We must replicate the core magic that handles SRFI-55's
-    ;; (require-extension (srfi N)), because we also need to generate
-    ;; SRFI-N library names when defining SRFIs from an R7RS module.
-    (('srfi (and num (? fixnum?)))
-     (string->symbol (string-append "srfi-" (number->string num))))
-    ((parts ...)
-     (string->symbol
-      (string-intersperse 
-       (map (lambda (part)
-	      (cond ((symbol? part) (symbol->string part))
-		    ((number? part) (number->string part))
-		    (else (fail))))
-	    parts)
-       ".")))
-    (_ (fail))))
+(use srfi-1 files extras)
+(use r7rs-library r7rs-support)
 
 (define (locate-library name loc)		; must be stripped
   ;;XXX scan include-path?
   (let* ((name2 (parse-library-name name loc))
 	 (sname2 (symbol->string name2)))
-    (or (##sys#provided? name2)
+    (or (##sys#find-module name2 #f)
+	(memq name2 ##sys#core-library-modules)
+	(memq name2 ##sys#core-syntax-modules)
 	(file-exists? (string-append sname2 ".import.so"))
 	(file-exists? (string-append sname2 ".import.scm"))
 	(extension-information name2))))
@@ -60,15 +43,6 @@
 	   (loop more)))
       (else (fail "invalid \"cond-expand\" form")))))
 
-(define (fixup-import/export-spec spec loc) ; expects spec to be stripped
-  (match spec
-    (((and head (or 'only 'except 'rename 'prefix)) name . more)
-     (cons* head (fixup-import/export-spec name loc) more))
-    ((name ...)
-     (parse-library-name name loc))
-    ((? symbol? spec) spec)
-    (_ (syntax-error loc "invalid import/export specifier" spec))))
-
 ;; Dig e.g. foo.bar out of (only (foo bar) ...) ...
 (define (import/export-spec-feature-name spec loc)
   (match spec
@@ -79,13 +53,6 @@
      (parse-library-name name loc))
     (else
      (syntax-error loc "invalid import/export specifier" spec))))
-
-(define (wrap-er-macro-transformer name handler)
-  (er-macro-transformer
-   (let ((orig (caddr (assq name (##sys#macro-environment)))))
-     (lambda (x r c)
-       (let ((e (##sys#current-environment)))
-         (handler x r c (lambda (x*) (orig x* '() e))))))))
 
 (define (import-transformer type)
   (wrap-er-macro-transformer
@@ -101,9 +68,25 @@
                       `(##core#require-extension (,name) #f))))
               (strip-syntax (cdr x)))))))
 
+(define (current-source-directory)
+  (cond (##sys#current-source-filename => pathname-directory)
+        (else #f)))
+
+(define (expand-toplevel-r7rs-library-forms exps)
+  (parameterize ((##sys#macro-environment (r7rs-library-macro-environment)))
+    (map (cut expand <> '()) exps)))
+
 (define (read-forms filename ci?)
-  (parameterize ((case-sensitive (not ci?)))
-    (##sys#include-forms-from-file filename)))
+  (let ((path (##sys#resolve-include-filename filename #t)))
+    (fluid-let ((##sys#include-pathnames
+                 (cond ((pathname-directory path) =>
+                        (cut cons <> ##sys#include-pathnames))
+                       ((current-source-directory) =>
+                        (cut cons <> ##sys#include-pathnames))
+                       (else ##sys#include-pathnames))))
+      (expand-toplevel-r7rs-library-forms
+       (parameterize ((case-sensitive (not ci?)))
+         (##sys#include-forms-from-file path))))))
 
 (define (parse-library-definition form dummy-export)	; expects stripped syntax
   (match form
@@ -179,7 +162,7 @@
     (_ (syntax-error 'define-library "invalid library definition" form))))
 
 (define (register-r7rs-module name)
-  (let ((dummy (string->symbol (conc "\x04r7rs" name))))
+  (let ((dummy (string->symbol (string-append "\x04r7rs" (symbol->string name)))))
     (put! name '##r7rs#module dummy)
     dummy))
 
@@ -196,15 +179,46 @@
 		       (set-cdr! dummylist (cons sym (cdr dummylist))))))))
 	  (register-export sym mod))))))
 
-(define-syntax define-extended-arity-comparator
-  (syntax-rules ()
-    ((_ name comparator check-type)
-     (define name
-       (let ((c comparator))
-	 (lambda (o1 o2 . os)
-	   (check-type o1 'name)
-	   (let lp ((o1 o1) (o2 o2) (os os) (eq #t))
-	     (check-type o2 'name)
-	     (if (null? os)
-		 (and eq (c o1 o2))
-		 (lp o2 (car os) (cdr os) (and eq (c o1 o2)))))))))))
+(define r7rs-define-library
+  (er-macro-transformer
+   (lambda (x r c)
+     (match (strip-syntax x)
+       ((_ name decls ...)
+        (let ((dummy (register-r7rs-module (parse-library-name name 'define-library))))
+          (parse-library-definition x dummy)))
+       (else
+        (syntax-error 'define-library "invalid library definition" x))))))
+
+(define r7rs-cond-expand
+  (er-macro-transformer
+   (lambda (x r c)
+     (cons (r 'begin)
+           (process-cond-expand (cdr x))))))
+
+(define r7rs-include
+  (er-macro-transformer
+   (lambda (e r c)
+     (cons (r 'begin)
+           (append-map (cut read-forms <> #f) (cdr e))))))
+
+(define r7rs-include-ci
+  (er-macro-transformer
+   (lambda (e r c)
+     (cons (r 'begin)
+           (append-map (cut read-forms <> #t) (cdr e))))))
+
+(define r7rs-import
+  (import-transformer 'import))
+
+(define r7rs-import-for-syntax
+  (import-transformer 'import-for-syntax))
+
+(define (r7rs-library-macro-environment)
+  (filter (lambda (p)
+            (memv (caddr p)
+                  (map (cut ##sys#slot <> 1)
+                       (list r7rs-cond-expand
+                             r7rs-define-library
+                             r7rs-include
+                             r7rs-include-ci))))
+          (##sys#macro-environment)))
