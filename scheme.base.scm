@@ -216,7 +216,7 @@
       (error 'list-set! "out of range"))))
 
 (: member (forall (a b) (a (list-of b) #!optional (procedure (b a) *) ; sic
-                         -> (or boolean (list-of b)))))
+                         -> (or false (list-of b)))))
 
 ;; XXX These aren't exported to the types file!?
 (define-specialization (member (x (or symbol procedure immediate)) (lst list))
@@ -237,7 +237,7 @@
 
 
 (: assoc (forall (a b c) (a (list-of (pair b c)) #!optional (procedure (b a) *) ; sic
-                            -> (or boolean (list-of (pair b c))))))
+                            -> (or false (list-of (pair b c))))))
 
 ;; XXX These aren't exported to the types file!?
 (define-specialization (assoc (x (or symbol procedure immediate)) (lst (list-of pair)))

@@ -52,7 +52,7 @@
 (: string-foldcase (string -> string))
 (define (string-foldcase s) (string-map char-foldcase s))
 
-(: digit-value (char -> (or fixnum boolean)))
+(: digit-value (char -> (or fixnum false)))
 (define (digit-value c)
   (let ((i (char->integer c)))
     (and (fx>= i 48) (fx<= i 57) (fx- i 48)))))
