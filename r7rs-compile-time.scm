@@ -72,9 +72,16 @@
   (cond (##sys#current-source-filename => pathname-directory)
         (else #f)))
 
+(define (expand/begin e)
+  (match (expand e '())
+    (('##core#begin . rest)
+     (cons '##core#begin
+           (map expand/begin rest)))
+    (e* e*)))
+
 (define (expand-toplevel-r7rs-library-forms exps)
   (parameterize ((##sys#macro-environment (r7rs-library-macro-environment)))
-    (map (cut expand <> '()) exps)))
+    (map expand/begin exps)))
 
 (define (read-forms filename ci?)
   (let ((path (##sys#resolve-include-filename filename #t)))
@@ -213,11 +220,17 @@
 (define r7rs-import-for-syntax
   (import-transformer 'import-for-syntax))
 
+;; NOTE Not really "r7rs" -- just the core begin rewrapped in
+;; a transformer. Used when expanding toplevel library forms.
+(define r7rs-begin
+  (##sys#make-structure 'transformer (macro-handler 'begin)))
+
 (define (r7rs-library-macro-environment)
   (filter (lambda (p)
             (memv (caddr p)
                   (map (cut ##sys#slot <> 1)
-                       (list r7rs-cond-expand
+                       (list r7rs-begin
+                             r7rs-cond-expand
                              r7rs-define-library
                              r7rs-include
                              r7rs-include-ci))))

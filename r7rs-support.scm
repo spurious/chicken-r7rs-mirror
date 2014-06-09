@@ -6,9 +6,13 @@
 
   (import scheme chicken)
 
+  (define (macro-handler name)
+    (cond ((assq name (##sys#macro-environment)) => caddr)
+          (else #f)))
+
   (define (wrap-er-macro-transformer name handler)
     (er-macro-transformer
-     (let ((orig (caddr (assq name (##sys#macro-environment)))))
+     (let ((orig (macro-handler name)))
        (lambda (x r c)
          (let ((e (##sys#current-environment)))
            (handler x r c (lambda (x*) (orig x* '() e))))))))
