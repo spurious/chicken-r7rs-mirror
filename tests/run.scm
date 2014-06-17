@@ -19,6 +19,18 @@
 
 (test-begin "r7rs tests")
 
+(test-group "2.1: Identifiers"
+  (test "#!(no-)fold-case"
+        '(FOO mooh qux blah foo BAR)
+        (append
+         (with-input-from-string
+          "FOO #!fold-case mooh QUX blah #!no-fold-case foo BAR" read-file)))
+  (test "#!(no-)fold-case only affects subsequent reads from the same port"
+        '(FOO bar baz downcased UPCASED)
+        (append
+         (with-input-from-string "FOO #!fold-case bar BAZ" read-file)
+         (with-input-from-string "downcased UPCASED" read-file))))
+
 (test-group "4.1.7: Inclusion"
   (test-group "include"
     (test "multiple filenames"
