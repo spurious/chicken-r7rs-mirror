@@ -1,6 +1,45 @@
 (module scheme.read (read)
   (import (except scheme read)
-	  (only chicken : current-read-table fx+ fx= optional unless when))
+	  (only chicken : current-read-table fx+ fx= optional unless when)
+	  (only chicken case-sensitive define-constant define-inline parameterize))
+
+  ;;;
+  ;;; 2.1 Identifiers
+  ;;;
+
+  ;; XXX Slot 14 indicates whether or not a port is case-folded.
+  ;; Hopefully this doesn't interfere with anything else.
+
+  (define-constant port-fold-case-slot 14)
+
+  (define-inline (port-fold-case p)
+    (##sys#slot p port-fold-case-slot))
+
+  (##sys#set-read-mark!
+   'fold-case
+   (lambda (p)
+     (##sys#setslot p port-fold-case-slot 'fold-case)
+     (read p)))
+
+  (##sys#set-read-mark!
+   'no-fold-case
+   (lambda (p)
+     (##sys#setslot p port-fold-case-slot 'no-fold-case)
+     (read p)))
+
+  (set! ##sys#read
+    (let ((read ##sys#read))
+      (lambda (port hook)
+	(parameterize ((case-sensitive
+			(case (port-fold-case port)
+			  ((fold-case) #f)
+			  ((no-fold-case) #t)
+			  (else (case-sensitive)))))
+	  (read port hook)))))
+
+  ;;;
+  ;;; 6.13.2 Input
+  ;;;
 
   (define (data? o)
     (not (procedure? o)))
@@ -68,6 +107,7 @@
        (##sys#setslot (##sys#slot read-table 3) 35 read-hash/shared)
        (##sys#setslot (##sys#slot read-table 3) 61 read-equal/shared))
      (lambda ()
+       (##sys#check-input-port port #t 'read)
        (read/shared port))
      (lambda ()
        (##sys#setslot (##sys#slot read-table 3) 35 read-hash/orig)
