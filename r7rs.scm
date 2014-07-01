@@ -17,6 +17,10 @@
   ;; For #u8(...) syntax.
   (require-extension srfi-4)
 
+  ;; Reexport (scheme base).
+  (require-extension scheme.base)
+  (include "scheme.base-interface.scm")
+
 (let ((old-hook ##sys#user-read-hook))
   ;; XXX Read syntax for "#false" and srfi-4's "#f32(...)" and friends
   ;; don't play nicely together, so we have to copy some of srfi-4.scm's
