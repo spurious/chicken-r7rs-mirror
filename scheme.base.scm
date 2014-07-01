@@ -498,12 +498,6 @@
         ((null? bvs) bv)
       (bytevector-copy! bv i (car bvs) 0 (car lens)))))
 
-;;
-;; XXX TODO There's nothing "utf8" about these at the moment! They
-;; should check their strings ("It is an error for bytevector to contain
-;; invalid UTF-8 byte sequences.").
-;;
-
 (define utf8->string
   (let ((bv->s (lambda (bv start . end)
                 (##sys#check-structure bv 'u8vector 'utf8->string)
@@ -740,7 +734,8 @@
 (define peek-u8
   (case-lambda
     (()
-     (let ((c (peek-char)))
+     (##sys#check-input-port ##sys#standard-input #t 'peek-u8)
+     (let ((c (peek-char ##sys#standard-input)))
        (if (eof-object? c) c
            (char->integer c))))
     ((port)
@@ -750,11 +745,12 @@
            (char->integer c))))))
 
 (define read-string
-  (let ((read-string/eof (lambda (k port)
-                           (##sys#check-input-port port #t 'read-string)
-                           (if (eof-object? (peek-char port))
-                               #!eof
-                               (%read-string k port)))))
+  (let ((read-string/eof
+         (lambda (k port)
+           (##sys#check-input-port port #t 'read-string)
+           (if (eof-object? (peek-char port))
+               #!eof
+               (##sys#read-string/port k port)))))
     (case-lambda
       ((k)
        (read-string/eof k ##sys#standard-input))
@@ -791,12 +787,12 @@
 
 (define read-bytevector!
   (let ((read-u8vector!/eof
-         (lambda (k bv . args)
-           (let ((r (apply read-u8vector! k bv args)))
+         (lambda (k bv port . args)
+           (let ((r (apply read-u8vector! k bv port args)))
              (if (fx= r 0) #!eof r)))))
     (case-lambda
       ((bv)
-       (read-u8vector!/eof #f bv))
+       (read-u8vector!/eof #f bv ##sys#standard-input))
       ((bv port)
        (read-u8vector!/eof #f bv port))
       ((bv port start)
