@@ -24,9 +24,10 @@
        (lambda ()
 	 ;; create module...
 	 (%eval `(module ,name ()
-		  ,@(map (lambda (spec)
-			   `(import ,(fixup-import/export-spec spec 'environment)))
-			 specs)))
+		   (import r7rs) ; for `import`
+		   ,@(map (lambda (spec)
+			    `(import ,(fixup-import/export-spec spec 'environment)))
+			  specs)))
 	 (let ((mod (##sys#find-module name)))
 	   (##sys#make-structure 'environment
 	    (cons 'import specs)
