@@ -35,7 +35,7 @@
   define
   define-record-type
   define-syntax
-  define-values ; TODO
+  define-values
   denominator numerator
   do
   dynamic-wind
