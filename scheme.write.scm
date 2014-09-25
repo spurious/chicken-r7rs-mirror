@@ -3,7 +3,13 @@
 		      write-shared
 		      write-simple)
   (import (rename scheme (display display-simple) (write write-simple))
-	  (only chicken : foldl fx+ fx= fx<= optional when))
+	  (only chicken : feature? foldl fx+ fx= fx<= optional when))
+
+  (when (feature? 'csi)
+    (set! ##sys#repl-print-hook
+      (lambda (o p)
+        (display o p)
+        (newline))))
 
   (define (interesting? o)
     (or (pair? o)
