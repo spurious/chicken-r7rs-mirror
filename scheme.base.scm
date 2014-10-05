@@ -656,8 +656,8 @@
           ((cadr exception-handlers) obj))))))
 
 (: error-object? (* -> boolean : (struct condition)))
-(: error-object-message ((struct condition) -> string))
-(: error-object-irritants ((struct condition) -> list))
+(: error-object-message ((struct condition) -> (or string false)))
+(: error-object-irritants ((struct condition) -> (or list false)))
 
 (define (error-object? o) (condition? o))
 (define error-object-message (condition-property-accessor 'exn 'message))
