@@ -128,7 +128,7 @@
                                         0
                                         ellipsis?
                                         (meta-variables pattern 0 ellipsis? '() #f)))))
-         (##sys#syntax-error "ill-formed syntax rule" rule)))
+         (##sys#syntax-error-hook "ill-formed syntax rule" rule)))
 
    ;; Generate code to test whether input expression matches pattern
 
