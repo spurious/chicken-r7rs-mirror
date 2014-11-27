@@ -20,7 +20,6 @@
   call-with-port 
   call-with-values
   case
-  case-lambda
   ceiling
   char-ready?
   char->integer integer->char
