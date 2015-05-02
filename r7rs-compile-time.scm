@@ -85,7 +85,9 @@
 
 (define (read-forms filename ci?)
   (let ((path (##sys#resolve-include-filename filename #t)))
-    (fluid-let ((##sys#include-pathnames
+    (fluid-let ((##sys#default-read-info-hook
+                 (and (feature? 'compiling) ##compiler#read-info-hook))
+                (##sys#include-pathnames
                  (cond ((pathname-directory path) =>
                         (cut cons <> ##sys#include-pathnames))
                        ((current-source-directory) =>
