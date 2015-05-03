@@ -1,6 +1,6 @@
 (module scheme.read (read)
   (import (except scheme read)
-	  (only chicken : current-read-table fx+ fx= optional unless when)
+	  (only chicken : current-read-table feature? fx+ fx= optional unless when)
 	  (only chicken case-sensitive define-constant define-inline parameterize))
 
   ;;;
@@ -36,6 +36,11 @@
 			  ((no-fold-case) #t)
 			  (else (case-sensitive)))))
 	  (read port hook)))))
+
+  (when (feature? 'csi)
+    (set! ##sys#repl-read-hook
+      (lambda (#!optional (p (current-input-port)))
+        (read p))))
 
   ;;;
   ;;; 6.13.2 Input
