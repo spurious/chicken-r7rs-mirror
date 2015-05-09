@@ -8,7 +8,7 @@
   (when (feature? 'csi)
     (set! ##sys#repl-print-hook
       (lambda (o p)
-        (display o p)
+        (write o p)
         (newline))))
 
   (define (interesting? o)
