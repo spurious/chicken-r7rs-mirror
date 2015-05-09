@@ -1,6 +1,6 @@
 (module scheme.read (read)
   (import (except scheme read)
-	  (only chicken : current-read-table feature? fx+ fx= optional unless when)
+	  (only chicken : current-read-table feature? fluid-let fx+ fx= optional unless when)
 	  (only chicken case-sensitive define-constant define-inline parameterize))
 
   ;;;
@@ -27,20 +27,17 @@
      (##sys#setslot p port-fold-case-slot 'no-fold-case)
      (read p)))
 
-  (set! ##sys#read
-    (let ((read ##sys#read))
-      (lambda (port hook)
-	(parameterize ((case-sensitive
-			(case (port-fold-case port)
-			  ((fold-case) #f)
-			  ((no-fold-case) #t)
-			  (else (case-sensitive)))))
-	  (read port hook)))))
+  (define sys-read ##sys#read)
 
-  (when (feature? 'csi)
-    (set! ##sys#repl-read-hook
-      (lambda (#!optional (p (current-input-port)))
-        (read p))))
+  (set! ##sys#read
+    (lambda (port hook)
+      (parameterize ((case-sensitive
+                      (case (port-fold-case port)
+                        ((fold-case) #f)
+                        ((no-fold-case) #t)
+                        (else (case-sensitive)))))
+        (fluid-let ((##sys#default-read-info-hook hook))
+          (read port)))))
 
   ;;;
   ;;; 6.13.2 Input
@@ -98,11 +95,11 @@
       (##sys#read-char-0 p)
       (letrec ((o (begin
 		    (register-shared! n (lambda () o))
-		    (##sys#read p ##sys#default-read-info-hook))))
+		    (sys-read p ##sys#default-read-info-hook))))
 	o))
 
     (define (read/shared p)
-      (let ((o (##sys#read port ##sys#default-read-info-hook)))
+      (let ((o (sys-read port ##sys#default-read-info-hook)))
 	 (when (pair? shared)
 	   (unthunkify! o (lambda a (apply ##sys#read-error p a))))
 	 o))
