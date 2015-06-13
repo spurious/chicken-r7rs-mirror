@@ -1,0 +1,4 @@
+(repo git "git://code.call-cc.org/chicken-{egg-name}")
+(uri targz "http://code.call-cc.org/cgi-bin/gitweb.cgi?p=chicken-{egg-name}.git;a=snapshot;h=refs/tags/{egg-release};sf=tgz")
+(release "0.0.1")
+(release "0.0.2")
