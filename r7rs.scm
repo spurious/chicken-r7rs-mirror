@@ -9,11 +9,6 @@
   (begin-for-syntax
     (require-library r7rs-compile-time))
 
-  ;; For extended number literals.
-  (if (feature? 'compiler-extension)
-      (require-library numbers-syntax)
-      (require-extension numbers))
-
   ;; For #u8(...) syntax.
   (require-extension srfi-4)
 

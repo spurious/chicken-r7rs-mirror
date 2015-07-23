@@ -4,5 +4,4 @@
 			make-polar
 			imag-part
 			real-part)
-  (import numbers)
-)
+  (import scheme))

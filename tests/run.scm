@@ -979,12 +979,6 @@
          (test "DSSSL keyword arguments aren't renamed (not R7RS)"
                "hello, XXX" (bar who: "XXX")))))
 
-(test-group "define-library"
-  (test-assert "R7RS libraries use the numbers extension"
-               (define-library (foo)
-                 (import (scheme base))
-                 (begin (eq? numbers#+ +)))))
-
 (test-group "define-record-type"
   (define-record-type foo (make-foo) foo?)
   (define foo (make-foo))

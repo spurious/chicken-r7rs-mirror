@@ -10,4 +10,4 @@
 			log
 			sqrt
 			nan?)
-  (import numbers))
+  (import scheme chicken))

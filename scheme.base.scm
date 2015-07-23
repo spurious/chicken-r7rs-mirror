@@ -34,7 +34,16 @@
 (begin-for-syntax
   (require-library r7rs-compile-time))
 (import r7rs-support)
-(import numbers)
+
+;; Numerical operations.
+(import (rename (only scheme exact->inexact inexact->exact modulo quotient remainder)
+                (exact->inexact inexact)
+                (inexact->exact exact)
+                (modulo floor-remainder)
+                (quotient truncate-quotient)
+                (remainder truncate-remainder))
+        (rename (only chicken quotient&remainder)
+                (quotient&remainder truncate/)))
 
 ;; read/write-string/line/byte
 (require-library extras)
@@ -160,8 +169,25 @@
 ;;;
 
 (: square (number -> number))
+(: floor/ (number number -> number number))
+(: floor-quotient (number number -> number))
 
 (define (square n) (* n n))
+
+;; `floor/` and `floor-quotient` taken from the numbers egg.
+
+(define (floor/ x y)
+  (receive (div rem) (quotient&remainder x y)
+    (if (positive? y)
+        (if (negative? rem)
+            (values (- div 1) (+ rem y))
+            (values div rem))
+        (if (positive? rem)
+            (values (- div 1) (+ rem y))
+            (values div rem)))))
+
+(define (floor-quotient x y)
+  (receive (div rem) (floor/ x y) div))
 
 ;;;
 ;;; 6.3 Booleans
