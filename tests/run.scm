@@ -538,8 +538,8 @@
 
 (test-group "6.10: Control features"
 
-  (define (1st . a) (first a))
-  (define (2nd . a) (second a))
+  (define (1st . a) (car a))
+  (define (2nd . a) (cadr a))
   (define (acc proc f . rest) ; accumulate results of `f`
     (let ((a '()))
       (apply proc (lambda args (set! a (cons (apply f args) a))) rest)
