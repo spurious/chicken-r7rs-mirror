@@ -86,7 +86,10 @@
 (define (read-forms filename ci?)
   (let ((path (##sys#resolve-include-filename filename #t)))
     (fluid-let ((##sys#default-read-info-hook
-                 (and (feature? 'compiling) ##compiler#read-info-hook))
+                 (let ((name 'chicken.compiler.support#read-info-hook))
+                   (and (feature? 'compiling)
+                        (##sys#symbol-has-toplevel-binding? name)
+                        (##sys#slot name 0))))
                 (##sys#include-pathnames
                  (cond ((pathname-directory path) =>
                         (cut cons <> ##sys#include-pathnames))
