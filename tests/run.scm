@@ -10,6 +10,7 @@
         (ports)
         (scheme base)
         (scheme char)
+        (scheme eval)
         (scheme file)
         (scheme read)
         (scheme write))
