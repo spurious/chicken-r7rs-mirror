@@ -146,7 +146,7 @@
 	      ,(parse-decls more)))
 	   ((('include-library-declarations fnames ...) . more)
 	    `(##core#begin
-	      ,@(process-include-decls fnames)
+	      ,(process-include-decls fnames)
 	      ,(parse-decls more)))
 	   ((('cond-expand decls ...) . more)
 	    `(##core#begin
@@ -157,17 +157,16 @@
 	      ,@code
 	      ,(parse-decls more)))
 	   (decl (syntax-error 'define-library "invalid library declaration" decl))))
-       `(##core#begin
-	 (##core#module
-	  ,real-name ((,dummy-export))
-	  ;; gruesome hack: we add a dummy export for adding indirect exports
-	  (##core#define-syntax ,dummy-export (##core#lambda _ '(##core#undefined)))
-	  ;; Another gruesome hack: provide feature so "use" works properly
-	  (##sys#provide (##core#quote ,real-name))
-	  ;; Set up an R7RS environment for the module's body.
-	  (import-for-syntax r7rs) ; overwrites "syntax-rules"
-	  (import r7rs) ; overwrites existing "import" and "import-for-syntax"
-          ,(parse-decls decls)))))
+       `(##core#module
+         ,real-name ((,dummy-export))
+         ;; gruesome hack: we add a dummy export for adding indirect exports
+         (##core#define-syntax ,dummy-export (##core#lambda _ '(##core#undefined)))
+         ;; Another gruesome hack: provide feature so "use" works properly
+         (##sys#provide (##core#quote ,real-name))
+         ;; Set up an R7RS environment for the module's body.
+         (import-for-syntax r7rs) ; overwrites "syntax-rules"
+         (import r7rs) ; overwrites existing "import" and "import-for-syntax"
+         ,(parse-decls decls))))
     (_ (syntax-error 'define-library "invalid library definition" form))))
 
 (define (register-r7rs-module name)
