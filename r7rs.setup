@@ -51,4 +51,4 @@
 	      (string-append "scheme." mod ".import.so")
 	      (string-append "scheme." mod ".types")))
       scheme-modules))
- '((version "0.0.1")))
+ '((version "0.0.3")))
