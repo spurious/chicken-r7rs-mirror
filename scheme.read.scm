@@ -1,7 +1,9 @@
-(module scheme.read (read)
-  (import (except scheme read)
-	  (only chicken : current-read-table feature? fluid-let fx+ fx= optional unless when)
-	  (only chicken case-sensitive define-constant define-inline parameterize))
+(module (scheme read) (read)
+  (import (except (scheme) read)
+	  (only (chicken) : case-sensitive current-read-table feature?)
+	  (only (chicken) fluid-let fx+ fx= optional unless when)
+	  (only (chicken) define-constant define-inline parameterize)
+	  (only (chicken read-syntax) set-read-syntax!))
 
   ;;;
   ;;; 2.1 Identifiers
@@ -15,13 +17,13 @@
   (define-inline (port-fold-case p)
     (##sys#slot p port-fold-case-slot))
 
-  (##sys#set-read-mark!
+  (set-read-syntax!
    'fold-case
    (lambda (p)
      (##sys#setslot p port-fold-case-slot 'fold-case)
      (read p)))
 
-  (##sys#set-read-mark!
+  (set-read-syntax!
    'no-fold-case
    (lambda (p)
      (##sys#setslot p port-fold-case-slot 'no-fold-case)

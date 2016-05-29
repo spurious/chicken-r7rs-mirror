@@ -1,29 +1,28 @@
 (module scheme.base ()
 
-(import (rename (except chicken modulo quotient remainder
-                                vector-copy!
-                                with-exception-handler)
+(import (rename (except (chicken) vector-copy! with-exception-handler)
                 (features feature-keywords)))
 
-(import (except scheme syntax-rules cond-expand
-                       assoc list-set! list-tail member
-                       char=? char<? char>? char<=? char>=?
-                       string=? string<? string>? string<=? string>=?
-                       string-copy string->list vector->list vector-fill!))
+(import (except (scheme) syntax-rules cond-expand assoc list-tail member
+                char=? char<? char>? char<=? char>=? string=? string<?
+                string>? string<=? string>=? string-copy string->list
+                vector->list vector-fill!))
 
-(import (prefix (only scheme char=? char<? char>? char<=? char>=?
-                             string=? string<? string>? string<=? string>=?)
+(import (prefix (only (scheme) char=? char<? char>? char<=? char>=?
+                      string=? string<? string>? string<=? string>=?)
                 %))
 
-(import (rename (only srfi-4 make-u8vector subu8vector u8vector u8vector?
-                             u8vector-length u8vector-ref u8vector-set!
-                             read-u8vector read-u8vector! write-u8vector)
+(import (rename (only (srfi 4) make-u8vector subu8vector u8vector
+                      u8vector? u8vector-length u8vector-ref
+                      u8vector-set! read-u8vector read-u8vector!
+                      write-u8vector)
                 (u8vector bytevector)
                 (u8vector-length bytevector-length)
                 (u8vector-ref bytevector-u8-ref)
                 (u8vector-set! bytevector-u8-set!)
                 (u8vector? bytevector?)
                 (make-u8vector make-bytevector)
+                (read-u8vector read-bytevector)
                 (write-u8vector write-bytevector)))
 
 (include "scheme.base-interface.scm")
@@ -46,9 +45,8 @@
                 (quotient&remainder truncate/)))
 
 ;; read/write-string/line/byte
-(require-library extras)
-(import (prefix (only extras read-string write-string) %))
-(import (rename (only extras read-line read-byte write-byte)
+(import (prefix (only (chicken io) write-string) %))
+(import (rename (only (chicken io) read-line read-string read-byte write-byte)
                 (read-byte read-u8)
                 (write-byte write-u8)))
 
@@ -61,9 +59,8 @@
                 (char-ready? u8-ready?)))
 
 ;; Non-R5RS string-*
-(require-library srfi-13)
-(import (prefix (only srfi-13 string-for-each string-map) %))
-(import (only srfi-13 string-copy string-copy! string-fill! string->list))
+(import (prefix (only (srfi 13) string-for-each string-map) %))
+(import (only (srfi 13) string-copy string-copy! string-fill! string->list))
 
 ;; For d-r-t redefinition.
 (import-for-syntax (only chicken define-record-type))
@@ -720,9 +717,7 @@
 (: input-port-open? (input-port -> boolean))
 (: output-port-open? (output-port -> boolean))
 (: peek-u8 (#!optional input-port -> fixnum))
-(: read-bytevector (number #!optional input-port -> (or bytevector eof)))
 (: read-bytevector! (bytevector #!optional input-port number number -> fixnum))
-(: read-string (number #!optional input-port -> (or string eof)))
 (: read-u8 (#!optional input-port -> fixnum))
 (: textual-port? (* --> boolean : port?))
 (: u8-ready? (#!optional input-port -> boolean))
@@ -770,19 +765,6 @@
        (if (eof-object? c) c
            (char->integer c))))))
 
-(define read-string
-  (let ((read-string/eof
-         (lambda (k port)
-           (##sys#check-input-port port #t 'read-string)
-           (if (eof-object? (peek-char port))
-               #!eof
-               (##sys#read-string/port k port)))))
-    (case-lambda
-      ((k)
-       (read-string/eof k ##sys#standard-input))
-      ((k port)
-       (read-string/eof k port)))))
-
 (define write-string
   (case-lambda
     ((s)
@@ -799,17 +781,6 @@
      (##sys#check-range start 0 (fx+ end 1) 'write-string)
      (##sys#check-range end start (fx+ (##sys#size s) 1) 'write-string)
      (%write-string (##sys#substring s start end) #f port))))
-
-(define read-bytevector
-  (let ((read-u8vector/eof
-         (lambda (k port)
-           (let ((bv (read-u8vector k port)))
-             (if (fx= 0 (bytevector-length bv)) #!eof bv)))))
-    (case-lambda
-      ((k)
-       (read-u8vector/eof k ##sys#standard-input))
-      ((k port)
-       (read-u8vector/eof k port)))))
 
 (define read-bytevector!
   (let ((read-u8vector!/eof

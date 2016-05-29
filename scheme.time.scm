@@ -1,14 +1,15 @@
 (module scheme.time (current-second
 		     current-jiffy
 		     jiffies-per-second)
-  (import (only scheme define inexact->exact)
-	  (only chicken : define-constant current-seconds current-milliseconds fp+))
+  (import (only (chicken) : define-constant)
+	  (only (chicken time) current-seconds current-milliseconds)
+	  (only (scheme) + define inexact->exact))
 
   ;; As of 2012-06-30.
   (define-constant tai-offset 35.)
 
   (: current-second (--> float))
-  (define (current-second) (fp+ (current-seconds) tai-offset))
+  (define (current-second) (+ (current-seconds) tai-offset))
 
   (: current-jiffy (--> fixnum))
   (define (current-jiffy) (inexact->exact (current-milliseconds)))

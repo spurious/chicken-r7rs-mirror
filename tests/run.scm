@@ -1,19 +1,20 @@
-(use r7rs)
-
-;; XXX: This seems to be necessary in order to get the syntax-rules
-;; from r7rs rather than the built-in CHICKEN one.  I'm not sure if
-;; that's correct or not...
-(import-for-syntax (r7rs))
-
-(import (chicken)
+(import (r7rs)
+        (chicken)
+        (chicken data-structures)
+        (chicken io)
+        (chicken ports)
         (test)
-        (ports)
         (scheme base)
         (scheme char)
         (scheme eval)
         (scheme file)
         (scheme read)
         (scheme write))
+
+;; XXX: This seems to be necessary in order to get the syntax-rules
+;; from r7rs rather than the built-in CHICKEN one.  I'm not sure if
+;; that's correct or not...
+(import-for-syntax (r7rs))
 
 (define (read-from-string s)
   (with-input-from-string s read))
@@ -25,12 +26,12 @@
         '(FOO mooh qux blah foo BAR)
         (append
          (with-input-from-string
-          "FOO #!fold-case mooh QUX blah #!no-fold-case foo BAR" read-file)))
+          "FOO #!fold-case mooh QUX blah #!no-fold-case foo BAR" read-all)))
   (test "#!(no-)fold-case only affects subsequent reads from the same port"
         '(FOO bar baz downcased UPCASED)
         (append
-         (with-input-from-string "FOO #!fold-case bar BAZ" read-file)
-         (with-input-from-string "downcased UPCASED" read-file))))
+         (with-input-from-string "FOO #!fold-case bar BAZ" read-all)
+         (with-input-from-string "downcased UPCASED" read-all))))
 
 (test-group "4.1.7: Inclusion"
   (test-group "include"
