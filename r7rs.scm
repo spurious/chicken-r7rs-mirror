@@ -50,13 +50,6 @@
             (else (old-hook char port))))))
 
 ;;;
-;;; 5.2. Import declarations
-;;;
-
-(define-syntax import r7rs-import)
-(define-syntax import-for-syntax r7rs-import-for-syntax)
-
-;;;
 ;;; 5.4. Syntax definitions
 ;;;
 (include "synrules.scm")

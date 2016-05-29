@@ -54,20 +54,6 @@
     (else
      (syntax-error loc "invalid import/export specifier" spec))))
 
-(define (import-transformer type)
-  (wrap-er-macro-transformer
-   type
-   (lambda (x r c import)
-     `(##core#begin
-       ,@(map (lambda (spec)
-                (let ((spec (fixup-import/export-spec spec type))
-                      (name (import/export-spec-feature-name spec type)))
-                  (import (list type spec))
-                  (if (memq name '(scheme foreign)) ; XXX others?
-                      '(##core#undefined)
-                      `(##core#require-extension (,name) #f))))
-              (strip-syntax (cdr x)))))))
-
 (define (current-source-directory)
   (cond (##sys#current-source-filename => pathname-directory)
         (else #f)))
@@ -169,7 +155,8 @@
 	  (##sys#provide (##core#quote ,real-name))
 	  ;; Set up an R7RS environment for the module's body.
 	  (import-for-syntax r7rs) ; overwrites "syntax-rules"
-	  (import r7rs) ; overwrites existing "import" and "import-for-syntax"
+	  (import r7rs) ; overwrites "export" et al.
+	  ;; Now process all toplevel library declarations
           ,(parse-decls decls)))))
     (_ (syntax-error 'define-library "invalid library definition" form))))
 
@@ -218,12 +205,6 @@
    (lambda (e r c)
      (cons (r 'begin)
            (append-map (cut read-forms <> #t) (cdr e))))))
-
-(define r7rs-import
-  (import-transformer 'import))
-
-(define r7rs-import-for-syntax
-  (import-transformer 'import-for-syntax))
 
 ;; NOTE Not really "r7rs" -- just the core begin rewrapped in
 ;; a transformer. Used when expanding toplevel library forms.
