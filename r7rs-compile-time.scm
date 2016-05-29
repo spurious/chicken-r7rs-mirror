@@ -150,7 +150,7 @@
 	 (##core#module
 	  ,real-name ((,dummy-export))
 	  ;; gruesome hack: we add a dummy export for adding indirect exports
-	  (##core#define-syntax ,dummy-export (##core#lambda _ '(##core#undefined)))
+	  (##core#define-syntax ,dummy-export (##core#lambda _ (##core#undefined)))
 	  ;; Another gruesome hack: provide feature so "use" works properly
 	  (##sys#provide (##core#quote ,real-name))
 	  ;; Set up an R7RS environment for the module's body.
