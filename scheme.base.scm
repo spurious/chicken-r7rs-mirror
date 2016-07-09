@@ -1,12 +1,11 @@
 (module scheme.base ()
 
-(import (rename (except chicken modulo quotient remainder
-                                vector-copy!
-                                with-exception-handler)
+(import (rename (except chicken vector-copy! with-exception-handler)
                 (features feature-keywords)))
 
 (import (except scheme syntax-rules cond-expand
-                       assoc list-set! list-tail member
+                       assoc member list-tail
+                       modulo quotient remainder
                        char=? char<? char>? char<=? char>=?
                        string=? string<? string>? string<=? string>=?
                        string-copy string->list vector->list vector-fill!))
