@@ -6,8 +6,12 @@
 	   (null-environment %null-environment)
 	   (scheme-report-environment %scheme-report-environment)))
 
-  (import numbers)
-  (export angle make-polar make-rectangular rationalize)
+  (cond-expand
+    (no-numbers
+     (export angle))
+    (else
+     (import numbers)
+     (export angle make-polar make-rectangular rationalize)))
 
   (require-extension scheme.eval)
   (export null-environment scheme-report-environment)

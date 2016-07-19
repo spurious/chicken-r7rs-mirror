@@ -50,6 +50,7 @@
           (with-output-to-string
            (lambda () (include-ci "include-ci.scm"))))))
 
+#+full-numeric-tower
 (test-group "6.2.6: numerical operations"
   (test-group "floor/...truncate-remainder"
     (test '(2 1)      (receive (floor/ 5 2)))
@@ -979,6 +980,7 @@
          (test "DSSSL keyword arguments aren't renamed (not R7RS)"
                "hello, XXX" (bar who: "XXX")))))
 
+#+full-numeric-tower
 (test-group "define-library"
   (test-assert "R7RS libraries use the numbers extension"
                (define-library (foo)

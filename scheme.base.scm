@@ -3,9 +3,7 @@
 (import (rename (except chicken vector-copy! with-exception-handler)
                 (features feature-keywords)))
 
-(import (except scheme syntax-rules cond-expand
-                       assoc member list-tail
-                       modulo quotient remainder
+(import (except scheme syntax-rules assoc member list-tail
                        char=? char<? char>? char<=? char>=?
                        string=? string<? string>? string<=? string>=?
                        string-copy string->list vector->list vector-fill!))
@@ -33,7 +31,17 @@
 (begin-for-syntax
   (require-library r7rs-compile-time))
 (import r7rs-support)
-(import numbers)
+
+(cond-expand
+  (no-numbers
+   (import (only scheme modulo quotient remainder))
+   (import (only (rename scheme (inexact->exact exact) (exact->inexact inexact)) exact inexact)))
+  (else
+   (import numbers)
+   (export exact-integer? exact-integer-sqrt)
+   (export floor/ floor-quotient floor-remainder)
+   (export rationalize)
+   (export truncate truncate/ truncate-quotient truncate-remainder)))
 
 ;; read/write-string/line/byte
 (require-library extras)
