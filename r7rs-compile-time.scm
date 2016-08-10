@@ -2,7 +2,7 @@
 
 
 (import matchable)
-(use srfi-1 files extras)
+(use srfi-1)
 (use r7rs-library r7rs-support)
 
 (define (locate-library name loc)		; must be stripped
@@ -54,15 +54,10 @@
     (else
      (syntax-error loc "invalid import/export specifier" spec))))
 
-(define (current-source-directory)
-  (cond (##sys#current-source-filename => pathname-directory)
-        (else #f)))
-
 (define (expand/begin e)
   (match (expand e '())
     (('##core#begin . rest)
-     (cons '##core#begin
-           (map expand/begin rest)))
+     (cons '##core#begin (map expand/begin rest)))
     (e* e*)))
 
 (define (expand-toplevel-r7rs-library-forms exps)
@@ -70,21 +65,16 @@
     (map expand/begin exps)))
 
 (define (read-forms filename ci?)
-  (let ((path (##sys#resolve-include-filename filename #t)))
-    (fluid-let ((##sys#default-read-info-hook
-                 (let ((name 'chicken.compiler.support#read-info-hook))
-                   (and (feature? 'compiling)
-                        (##sys#symbol-has-toplevel-binding? name)
-                        (##sys#slot name 0))))
-                (##sys#include-pathnames
-                 (cond ((pathname-directory path) =>
-                        (cut cons <> ##sys#include-pathnames))
-                       ((current-source-directory) =>
-                        (cut cons <> ##sys#include-pathnames))
-                       (else ##sys#include-pathnames))))
-      (expand-toplevel-r7rs-library-forms
-       (parameterize ((case-sensitive (not ci?)))
-         (##sys#include-forms-from-file path))))))
+  (fluid-let ((##sys#default-read-info-hook
+	       (let ((name 'chicken.compiler.support#read-info-hook))
+		 (and (feature? 'compiling)
+		      (##sys#symbol-has-toplevel-binding? name)
+		      (##sys#slot name 0)))))
+     (parameterize ((case-sensitive (not ci?)))
+       (##sys#include-forms-from-file
+	filename
+	##sys#current-source-filename
+	expand-toplevel-r7rs-library-forms))))
 
 (define (parse-library-definition form dummy-export)	; expects stripped syntax
   (match form
