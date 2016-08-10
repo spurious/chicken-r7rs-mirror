@@ -478,7 +478,7 @@
 (: make-bytevector (fixnum #!optional fixnum -> bytevector))
 (: string->utf8 (string #!optional fixnum fixnum -> bytevector))
 (: utf8->string (bytevector #!optional fixnum fixnum -> string))
-(: write-bytevector (bytevector #!optional output-port -> fixnum))
+(: write-bytevector (bytevector #!optional output-port fixnum fixnum -> void))
 
 (define bytevector-copy
   (case-lambda
@@ -798,7 +798,7 @@
        (read-u8vector!/eof (fx- end start) bv port start)))))
 
 (define (open-input-bytevector bv)
-  (let ((port (##sys#make-port #t #f "(bytevector)" 'custom)))
+  (let ((port (##sys#make-port 1 #f "(bytevector)" 'custom)))
     (##sys#setslot
      port
      2
