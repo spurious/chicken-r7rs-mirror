@@ -97,6 +97,16 @@
        (parameterize ((case-sensitive (not ci?)))
          (##sys#include-forms-from-file path))))))
 
+(define implicit-r7rs-library-bindings
+  '(begin
+    cond-expand
+    export
+    import
+    import-for-syntax
+    include
+    include-ci
+    syntax-rules))
+
 (define (parse-library-definition form dummy-export)	; expects stripped syntax
   (match form
     ((_ name decls ...)
@@ -164,8 +174,8 @@
          ;; Another gruesome hack: provide feature so "use" works properly
          (##sys#provide (##core#quote ,real-name))
          ;; Set up an R7RS environment for the module's body.
-         (import-for-syntax r7rs) ; overwrites "syntax-rules"
-         (import r7rs) ; overwrites existing "import" and "import-for-syntax"
+         (import-for-syntax (only r7rs ,@implicit-r7rs-library-bindings))
+         (import (only r7rs ,@implicit-r7rs-library-bindings))
          ,(parse-decls decls))))
     (_ (syntax-error 'define-library "invalid library definition" form))))
 
