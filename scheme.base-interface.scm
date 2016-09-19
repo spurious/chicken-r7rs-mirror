@@ -150,8 +150,8 @@
   syntax-rules ; provided by the "r7rs" module
   |#
   textual-port?
-  #|
   truncate
+  #|
   truncate/ truncate-quotient truncate-remainder
   |#
   u8-ready?
