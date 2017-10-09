@@ -52,6 +52,7 @@
   exact-integer?
   |#
   exact? inexact?
+  exp
   expt
   features
   file-error?
