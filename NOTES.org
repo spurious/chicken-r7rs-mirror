@@ -3,9 +3,6 @@ NOTES
 * "export" does not support "(rename ...)" specifier yet.
   - this needs extensions to the core module system.
 
-* "(import SYMBOL)" is currently allowed. Should it not?
-  - I think this is needed for backwards compatibility (when an R7RS module imports a non-R7RS module).
-
 * Redefinition of "import" causes "re-importing" warnings.
   - The warnings could be removed in core, it's usefulness is not completely clear.
 
@@ -20,4 +17,3 @@ NOTES
 
 * In R7RS parameter-values are not inherited from parent threads. This
   will require changes in core, possibly with some sort of backwards-compatibility mode.
-
