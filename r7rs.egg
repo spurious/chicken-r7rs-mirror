@@ -7,7 +7,8 @@
  (components
    (extension r7rs 
      (component-dependencies r7rs-compile-time)
-     (source-dependencies "synrules.scm"))
+     (source-dependencies "synrules.scm" 
+                          "scheme.base-interface.scm"))
    (extension r7rs-support)
    (extension r7rs-library)
    (extension r7rs-compile-time

@@ -47,19 +47,15 @@
   error-object?
   even? odd?
   exact inexact
-  #|
   exact-integer-sqrt
   exact-integer?
-  |#
   exact? inexact?
   exp
   expt
   features
   file-error?
   floor
-  #|
   floor/ floor-quotient floor-remainder
-  |#
   flush-output-port
   for-each
   gcd lcm
@@ -113,9 +109,7 @@
   quotient remainder
   raise raise-continuable
   rational?
-  #|
   rationalize
-  |#
   read-bytevector read-bytevector!
   read-char
   read-error?
@@ -152,9 +146,7 @@
   |#
   textual-port?
   truncate
-  #|
   truncate/ truncate-quotient truncate-remainder
-  |#
   u8-ready?
   unless
   #|

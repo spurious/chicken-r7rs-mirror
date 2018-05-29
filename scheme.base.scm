@@ -24,21 +24,16 @@
                 (make-u8vector make-bytevector)
                 (write-u8vector write-bytevector)))
 
-(include "scheme.base-interface.scm")
-
 ;; For syntax definition helpers.
 (import-for-syntax r7rs-support)
 (import-for-syntax r7rs-compile-time)
 (import r7rs-support)
 (import chicken.type)
 (import (only chicken.base exact-integer? exact-integer-sqrt
-              quotient&remainder
+              quotient&remainder error
               error foldl cut optional when case-lambda unless receive))
 
-(export exact-integer? exact-integer-sqrt)
-(export floor/ floor-quotient floor-remainder)
-(export rationalize)
-(export truncate truncate/ truncate-quotient truncate-remainder)
+(include "scheme.base-interface.scm")
 
 ;; read/write-string/line/byte
 (import (prefix (only chicken.io read-string write-string) %))
