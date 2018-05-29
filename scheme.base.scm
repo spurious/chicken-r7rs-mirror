@@ -32,9 +32,8 @@
 (import r7rs-support)
 (import chicken.type)
 (import (only chicken.base exact-integer? exact-integer-sqrt
-              floor/ floor-quotient floor-remainder truncate/
-              truncate-quotient truncate-remainder error
-              foldl cut optional when case-lambda unless))
+              quotient&remainder
+              error foldl cut optional when case-lambda unless receive))
 
 (export exact-integer? exact-integer-sqrt)
 (export floor/ floor-quotient floor-remainder)
@@ -163,6 +162,48 @@
 ;;;
 ;;; 6.2.6 Numerical operations
 ;;;
+
+;; TODO: Copy the specializations from types.db
+(: truncate/ ((or integer float) (or integer float) -> (or integer float) (or integer float)))
+
+(define truncate/ quotient&remainder)
+
+(: truncate-remainder ((or integer float) (or integer float) -> (or integer float)))
+
+(define truncate-remainder remainder)
+
+(: truncate-quotient ((or integer float) (or integer float) -> (or integer float)))
+
+(define truncate-quotient quotient)
+
+;; XXX These are bad bad bad definitions; very inefficient.
+;; But to improve it we would need to provide another implementation
+;; of the quotient procedure which floors instead of truncates.
+
+(: floor-remainder ((or fixnum bignum float ratnum) (or fixnum bignum float ratnum) -> (or fixnum bignum float ratnum) (or fixnum bignum float ratnum)))
+
+(define (floor-remainder x y)
+  (receive (div rem) (floor/ x y) rem))
+
+(: floor-quotient ((or fixnum bignum float ratnum) (or fixnum bignum float ratnum) -> (or fixnum bignum float ratnum) (or fixnum bignum float ratnum)))
+
+(define (floor-quotient x y)
+  (receive (div rem) (floor/ x y) div))
+
+(: floor/ ((or fixnum bignum float ratnum) (or fixnum bignum float ratnum) -> (or fixnum bignum float ratnum) (or fixnum bignum float ratnum)))
+
+;; Same as quotient&remainder, but quotient gets adjusted along with
+;; the remainder.
+(define (floor/ x y)
+  (receive (div rem) (quotient&remainder x y)
+    (if (positive? y)
+        (if (negative? rem)
+            (values (- div 1) (+ rem y))
+            (values div rem))
+        (if (positive? rem)
+            (values (- div 1) (+ rem y))
+            (values div rem)))))
+
 
 (: square (number -> number))
 
