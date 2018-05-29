@@ -3,18 +3,16 @@
   (import (except scheme syntax-rules))	;XXX except ...
   (import (only chicken.platform feature? register-feature!))
   (import (only chicken.base include))
+  (import chicken.module)
+  (import (only chicken.syntax begin-for-syntax))
+  (import srfi-4)
 
   ;; For syntax definition helpers.
   (import-for-syntax matchable)
   (import-for-syntax r7rs-compile-time)
-  (begin-for-syntax
-    (require-library r7rs-compile-time))
-
-  ;; For #u8(...) syntax.
-  (require-extension srfi-4)
 
   ;; Reexport (scheme base).
-  (require-extension scheme.base)
+  (import scheme.base)
   (include "scheme.base-interface.scm")
 
 (let ((old-hook ##sys#user-read-hook))
