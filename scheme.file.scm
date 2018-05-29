@@ -12,7 +12,8 @@
 		     with-output-to-file)
 
   (import scheme)
-  (import (rename (only chicken delete-file file-exists? :)
+  (import (only chicken.type :))
+  (import (rename (only chicken.file delete-file file-exists?)
 		  (file-exists? chicken-file-exists?)))
 
   ;; CHICKEN's file-exists? returns the filename when true,

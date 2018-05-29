@@ -1,9 +1,12 @@
 ;;;; compile-time support code (mostly for modules)
 
 
-(import matchable)
-(use srfi-1 files extras)
-(use r7rs-library r7rs-support)
+(module r7rs-compile-time *
+
+(import scheme matchable)
+(import srfi-1 chicken.base chicken.syntax chicken.plist
+        chicken.pathname chicken.platform chicken.file)
+(import r7rs-library r7rs-support)
 
 (define (locate-library name loc)		; must be stripped
   ;;XXX scan include-path?
@@ -13,8 +16,7 @@
 	(memq name2 ##sys#core-library-modules)
 	(memq name2 ##sys#core-syntax-modules)
 	(file-exists? (string-append sname2 ".import.so"))
-	(file-exists? (string-append sname2 ".import.scm"))
-	(extension-information name2))))
+	(file-exists? (string-append sname2 ".import.scm")))))
 
 (define (process-cond-expand clauses)
   ;; returns list of forms of successful clause or #f
@@ -246,3 +248,5 @@
                              r7rs-include
                              r7rs-include-ci))))
           (##sys#macro-environment)))
+
+)

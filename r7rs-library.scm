@@ -7,8 +7,9 @@
 
 (module r7rs-library *
 
-  (import scheme chicken matchable)
-  (use (only data-structures string-intersperse))
+  (import scheme chicken.base matchable)
+  (import (only chicken.string string-intersperse))
+  (import (only chicken.syntax syntax-error))
 
   (define (fixup-import/export-spec spec loc)
     (match spec

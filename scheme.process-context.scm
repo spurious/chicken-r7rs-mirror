@@ -5,8 +5,11 @@
 				get-environment-variables)
 
   (import scheme 
-	  (rename chicken (exit chicken-exit))
-	  foreign)
+	  (rename chicken.base (exit chicken-exit))
+          chicken.type
+          chicken.process-context
+          (only chicken.fixnum fx+)
+	  chicken.foreign)
 
 ;;;
 ;;; 6.14. System interface.
@@ -68,13 +71,5 @@ extern char **environ;
            (unwind))))
      ;; The built-in exit runs cleanup handlers for us.
      (chicken-exit (->exit-status obj)))))
-
-(define emergency-exit
-  (case-lambda
-    (()
-     (emergency-exit 0))
-    ((obj)
-     (##sys#cleanup-before-exit)
-     ((foreign-lambda void "_exit" int) (->exit-status obj)))))
 
 )

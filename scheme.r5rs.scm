@@ -1,19 +1,13 @@
 (module scheme.r5rs ()
 
-  (import chicken)
+  (import chicken.base
+          (only chicken.type :))
   (import
    (rename scheme
 	   (null-environment %null-environment)
 	   (scheme-report-environment %scheme-report-environment)))
 
-  (cond-expand
-    (no-numbers
-     (export angle))
-    (else
-     (import numbers)
-     (export angle make-polar make-rectangular rationalize)))
-
-  (require-extension scheme.eval)
+  (export angle make-polar make-rectangular rationalize)
   (export null-environment scheme-report-environment)
 
   (reexport

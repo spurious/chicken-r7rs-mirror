@@ -3,4 +3,4 @@
 		     force
 		     make-promise
 		     promise?)
-  (import scheme chicken))
+  (import scheme chicken.base))

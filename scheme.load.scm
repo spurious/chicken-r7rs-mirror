@@ -1,5 +1,6 @@
 (module scheme.load (load)
-  (import chicken)
+  (import chicken.base
+          (only chicken.type :))
   (import (rename scheme (load %load)
 			 (eval %eval)))
 

@@ -1,7 +1,12 @@
 (module scheme.read (read)
   (import (except scheme read)
-	  (only chicken : current-read-table feature? fluid-let fx+ fx= optional unless when)
-	  (only chicken case-sensitive define-constant define-inline parameterize))
+          (only chicken.type :)
+          (only chicken.platform feature?)
+          (only chicken.fixnum fx+ fx=)
+          (only chicken.read-syntax current-read-table)
+	  (only chicken.base fluid-let 
+                optional unless when case-sensitive 
+                define-constant define-inline parameterize))
 
   ;;;
   ;;; 2.1 Identifiers

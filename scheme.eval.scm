@@ -1,8 +1,9 @@
 (module scheme.eval (eval
 		     environment)
 
-  (import (rename scheme (eval %eval)) chicken)
-  (use r7rs-library)
+  (import (rename scheme (eval %eval)) chicken.base)
+  (import (only chicken.type :))
+  (import r7rs-library)
 
 ;;;
 ;;; 6.12. Environments and evaluation

@@ -7,7 +7,8 @@
 		     string-upcase string-downcase
 		     digit-value)
 
-(import chicken)
+(import chicken.base chicken.fixnum)
+(import (only chicken.type :))
 (import r7rs-support)
 (import
   (except scheme
@@ -19,7 +20,6 @@
 	  string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?)
     %))
 
-(require-library srfi-13)
 (import (only srfi-13 string-map string-upcase string-downcase))
 
 (: char-ci=? (char char #!rest char -> boolean))

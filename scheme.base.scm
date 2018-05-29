@@ -1,7 +1,8 @@
 (module scheme.base ()
 
-(import (rename (except chicken vector-copy! with-exception-handler)
+(import (rename chicken.platform
                 (features feature-keywords)))
+(import (except chicken.condition with-exception-handler))
 
 (import (except scheme syntax-rules assoc member list-tail
                        char=? char<? char>? char<=? char>=?
@@ -31,27 +32,22 @@
 (begin-for-syntax
   (require-library r7rs-compile-time))
 (import r7rs-support)
+(import (only chicken.type :))
 
-(cond-expand
-  (no-numbers
-   (import (only scheme modulo quotient remainder))
-   (import (only (rename scheme (inexact->exact exact) (exact->inexact inexact)) exact inexact)))
-  (else
-   (import numbers)
-   (export exact-integer? exact-integer-sqrt)
-   (export floor/ floor-quotient floor-remainder)
-   (export rationalize)
-   (export truncate truncate/ truncate-quotient truncate-remainder)))
+(export exact-integer? exact-integer-sqrt)
+(export floor/ floor-quotient floor-remainder)
+(export rationalize)
+(export truncate truncate/ truncate-quotient truncate-remainder)
 
 ;; read/write-string/line/byte
 (require-library extras)
-(import (prefix (only extras read-string write-string) %))
-(import (rename (only extras read-line read-byte write-byte)
+(import (prefix (only chicken.io read-string write-string) %))
+(import (rename (only chicken.io read-line read-byte write-byte)
                 (read-byte read-u8)
                 (write-byte write-u8)))
 
 ;; flush-output
-(import (rename (only chicken flush-output)
+(import (rename (only chicken.base flush-output case-lambda)
                 (flush-output flush-output-port)))
 
 ;; u8-ready?
@@ -64,7 +60,7 @@
 (import (only srfi-13 string-copy string-copy! string-fill! string->list))
 
 ;; For d-r-t redefinition.
-(import-for-syntax (only chicken define-record-type))
+(import-for-syntax (only chicken.base define-record-type))
 
 ;;;
 ;;; 4.1.7. Inclusion

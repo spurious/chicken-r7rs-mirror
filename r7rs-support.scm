@@ -4,7 +4,7 @@
 
 (module r7rs-support *
 
-  (import scheme chicken)
+  (import scheme chicken.base chicken.syntax)
 
   (define (macro-handler name)
     (cond ((assq name (##sys#macro-environment)) => caddr)
