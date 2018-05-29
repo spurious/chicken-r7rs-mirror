@@ -1,7 +1,8 @@
 (module r7rs (define-library import import-for-syntax export syntax-rules)
 
   (import (except scheme syntax-rules))	;XXX except ...
-  (import (only chicken feature? include register-feature!))
+  (import (only chicken.platform feature? register-feature!))
+  (import (only chicken.base include))
 
   ;; For syntax definition helpers.
   (import-for-syntax matchable)
