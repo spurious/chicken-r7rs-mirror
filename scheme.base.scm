@@ -3,7 +3,7 @@
 (import (rename chicken.platform
                 (features feature-keywords)))
 (import (except chicken.condition with-exception-handler))
-
+(import chicken.module)
 (import (except scheme syntax-rules assoc member list-tail
                        char=? char<? char>? char<=? char>=?
                        string=? string<? string>? string<=? string>=?
@@ -29,10 +29,12 @@
 ;; For syntax definition helpers.
 (import-for-syntax r7rs-support)
 (import-for-syntax r7rs-compile-time)
-(begin-for-syntax
-  (require-library r7rs-compile-time))
 (import r7rs-support)
-(import (only chicken.type :))
+(import chicken.type)
+(import (only chicken.base exact-integer? exact-integer-sqrt
+              floor/ floor-quotient floor-remainder truncate/
+              truncate-quotient truncate-remainder error
+              foldl cut optional when case-lambda unless))
 
 (export exact-integer? exact-integer-sqrt)
 (export floor/ floor-quotient floor-remainder)
@@ -40,14 +42,15 @@
 (export truncate truncate/ truncate-quotient truncate-remainder)
 
 ;; read/write-string/line/byte
-(require-library extras)
 (import (prefix (only chicken.io read-string write-string) %))
 (import (rename (only chicken.io read-line read-byte write-byte)
                 (read-byte read-u8)
                 (write-byte write-u8)))
 
+(import chicken.fixnum)
+
 ;; flush-output
-(import (rename (only chicken.base flush-output case-lambda)
+(import (rename (only chicken.base flush-output)
                 (flush-output flush-output-port)))
 
 ;; u8-ready?
@@ -55,7 +58,6 @@
                 (char-ready? u8-ready?)))
 
 ;; Non-R5RS string-*
-(require-library srfi-13)
 (import (prefix (only srfi-13 string-for-each string-map) %))
 (import (only srfi-13 string-copy string-copy! string-fill! string->list))
 
@@ -689,6 +691,9 @@
 ;;;
 ;;; 6.13. Input and Output
 ;;;
+
+(import (only chicken.base get-output-string open-output-string
+              port-closed? receive port?))
 
 (: binary-port? (* --> boolean : port?))
 (: call-with-port (port (port -> . *) -> . *))

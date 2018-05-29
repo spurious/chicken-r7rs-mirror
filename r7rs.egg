@@ -2,7 +2,7 @@
  (author "The Chicken Team")
  (category lang-exts)
  (license "BSD")
- (dependencies matchable)
+ (dependencies matchable srfi-13)
  (test-dependencies test)
  (components
    (extension r7rs 
@@ -26,7 +26,8 @@
    (extension scheme.lazy (types-file))
    (extension scheme.load (types-file))
    (extension scheme.process-context (types-file))
-   (extension scheme.r5rs (types-file))
+   (extension scheme.r5rs (types-file) 
+              (component-dependencies scheme.eval))
    (extension scheme.read (types-file))
    (extension scheme.repl (types-file))
    (extension scheme.time (types-file))
