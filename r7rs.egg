@@ -8,9 +8,10 @@
    (extension r7rs
      (component-dependencies r7rs-compile-time)
      (source-dependencies "synrules.scm" "scheme.base-interface.scm"))
-   (extension r7rs-support)
-   (extension r7rs-library)
+   (extension r7rs-support (linkage dynamic))
+   (extension r7rs-library (linkage dynamic))
    (extension r7rs-compile-time
+     (linkage dynamic)
      (source "r7rs-compile-time-module.scm")
      (source-dependencies "r7rs-compile-time.scm")
      (component-dependencies r7rs-library r7rs-support))
