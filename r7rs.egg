@@ -2,7 +2,7 @@
  (author "The Chicken Team")
  (category lang-exts)
  (license "BSD")
- (dependencies matchable srfi-13)
+ (dependencies matchable srfi-1 srfi-13)
  (test-dependencies test)
  (components
    (extension r7rs
