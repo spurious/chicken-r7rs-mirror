@@ -1,8 +1,6 @@
-(module scheme.eval (eval
-		     environment)
-
-  (import (rename scheme (eval %eval)) chicken.base)
-  (import (only chicken.type :))
+(module scheme.eval (eval environment)
+  (import (rename scheme (eval %eval)))
+  (import chicken.base chicken.type)
   (import r7rs-library)
 
 ;;;

@@ -1,57 +1,65 @@
 (module scheme.base ()
 
-(import (rename chicken.platform
-                (features feature-keywords)))
-(import (except chicken.condition with-exception-handler))
-(import chicken.module)
-(import (except scheme syntax-rules assoc member list-tail
-                       char=? char<? char>? char<=? char>=?
-                       string=? string<? string>? string<=? string>=?
-                       string-copy string->list vector->list vector-fill!))
+(import chicken.fixnum
+        chicken.module
+        chicken.syntax
+        chicken.type
+        (except chicken.condition with-exception-handler)
+        (rename chicken.platform (features feature-keywords))
+        (only chicken.base call/cc case-lambda current-error-port
+              define-values exact-integer? exact-integer-sqrt letrec*
+              let-values let*-values make-parameter open-input-string
+              parameterize quotient&remainder error foldl cut optional
+              when unless receive)
+        (except scheme syntax-rules assoc list-tail member string-copy
+                string->list vector->list vector-fill! char=? char<? char>?
+                char<=? char>=? string=? string<? string>? string<=? string>=?))
 
-(import (prefix (only scheme char=? char<? char>? char<=? char>=?
-                             string=? string<? string>? string<=? string>=?)
-                %))
+;; For syntax definition helpers.
+(import-for-syntax r7rs-support)
+(import-for-syntax r7rs-compile-time)
+(import r7rs-support)
 
-(import (rename (only srfi-4 make-u8vector subu8vector u8vector u8vector?
-                             u8vector-length u8vector-ref u8vector-set!
-                             read-u8vector read-u8vector! write-u8vector)
+;; Export all of scheme.base from this module.
+(import (prefix (only chicken.base include) %))
+(%include "scheme.base-interface.scm")
+
+;; Numerical operations.
+(import (rename (only scheme exact->inexact inexact->exact)
+                (exact->inexact inexact)
+                (inexact->exact exact)))
+
+;; read/write-string/line/byte
+(import (prefix (only chicken.io write-string) %))
+(import (rename (only chicken.io read-line read-string read-byte write-byte)
+                (read-byte read-u8)
+                (write-byte write-u8)))
+
+;; flush-output
+(import (rename (only chicken.base flush-output)
+                (flush-output flush-output-port)))
+
+;; Bytevectors.
+(import (rename (only srfi-4 make-u8vector subu8vector u8vector
+                      u8vector? u8vector-length u8vector-ref
+                      u8vector-set! read-u8vector read-u8vector!
+                      write-u8vector)
                 (u8vector bytevector)
                 (u8vector-length bytevector-length)
                 (u8vector-ref bytevector-u8-ref)
                 (u8vector-set! bytevector-u8-set!)
                 (u8vector? bytevector?)
                 (make-u8vector make-bytevector)
+                (read-u8vector read-bytevector)
                 (write-u8vector write-bytevector)))
-
-;; For syntax definition helpers.
-(import-for-syntax r7rs-support)
-(import-for-syntax r7rs-compile-time)
-(import r7rs-support)
-(import chicken.type)
-(import (only chicken.base exact-integer? exact-integer-sqrt
-              quotient&remainder error
-              error foldl cut optional when case-lambda unless receive))
-
-(include "scheme.base-interface.scm")
-
-;; read/write-string/line/byte
-(import (prefix (only chicken.io read-string write-string) %))
-(import (rename (only chicken.io read-line read-byte write-byte)
-                (read-byte read-u8)
-                (write-byte write-u8)))
-
-(import chicken.fixnum)
-
-;; flush-output
-(import (rename (only chicken.base flush-output)
-                (flush-output flush-output-port)))
 
 ;; u8-ready?
 (import (rename (only scheme char-ready?)
                 (char-ready? u8-ready?)))
 
-;; Non-R5RS string-*
+;; Non-R5RS string and char procedures.
+(import (prefix (only scheme char=? char<? char>? char<=? char>=?) %))
+(import (prefix (only scheme string=? string<? string>? string<=? string>=?) %))
 (import (prefix (only srfi-13 string-for-each string-map) %))
 (import (only srfi-13 string-copy string-copy! string-fill! string->list))
 
@@ -138,6 +146,9 @@
 ;;; 5.5 Record-type definitions
 ;;;
 
+(define ##sys#make-symbol
+  (##core#primitive "C_make_symbol"))
+
 ;; Rewrite the standard d-r-t expansion so that each newly-defined
 ;; record type has a unique type tag. This is every kind of hacky.
 (define-syntax define-record-type
@@ -201,8 +212,25 @@
 
 
 (: square (number -> number))
+(: floor/ (number number -> number number))
+(: floor-quotient (number number -> number))
 
 (define (square n) (* n n))
+
+;; `floor/` and `floor-quotient` taken from the numbers egg.
+
+(define (floor/ x y)
+  (receive (div rem) (quotient&remainder x y)
+    (if (positive? y)
+        (if (negative? rem)
+            (values (- div 1) (+ rem y))
+            (values div rem))
+        (if (positive? rem)
+            (values (- div 1) (+ rem y))
+            (values div rem)))))
+
+(define (floor-quotient x y)
+  (receive (div rem) (floor/ x y) div))
 
 ;;;
 ;;; 6.3 Booleans
@@ -496,7 +524,7 @@
 (: make-bytevector (fixnum #!optional fixnum -> bytevector))
 (: string->utf8 (string #!optional fixnum fixnum -> bytevector))
 (: utf8->string (bytevector #!optional fixnum fixnum -> string))
-(: write-bytevector (bytevector #!optional output-port -> fixnum))
+(: write-bytevector (bytevector #!optional output-port fixnum fixnum -> void))
 
 (define bytevector-copy
   (case-lambda
@@ -738,9 +766,7 @@
 (: input-port-open? (input-port -> boolean))
 (: output-port-open? (output-port -> boolean))
 (: peek-u8 (#!optional input-port -> fixnum))
-(: read-bytevector (number #!optional input-port -> (or bytevector eof)))
 (: read-bytevector! (bytevector #!optional input-port number number -> fixnum))
-(: read-string (number #!optional input-port -> (or string eof)))
 (: read-u8 (#!optional input-port -> fixnum))
 (: textual-port? (* --> boolean : port?))
 (: u8-ready? (#!optional input-port -> boolean))
@@ -788,19 +814,6 @@
        (if (eof-object? c) c
            (char->integer c))))))
 
-(define read-string
-  (let ((read-string/eof
-         (lambda (k port)
-           (##sys#check-input-port port #t 'read-string)
-           (if (eof-object? (peek-char port))
-               #!eof
-               (##sys#read-string/port k port)))))
-    (case-lambda
-      ((k)
-       (read-string/eof k ##sys#standard-input))
-      ((k port)
-       (read-string/eof k port)))))
-
 (define write-string
   (case-lambda
     ((s)
@@ -818,17 +831,6 @@
      (##sys#check-range end start (fx+ (##sys#size s) 1) 'write-string)
      (%write-string (##sys#substring s start end) #f port))))
 
-(define read-bytevector
-  (let ((read-u8vector/eof
-         (lambda (k port)
-           (let ((bv (read-u8vector k port)))
-             (if (fx= 0 (bytevector-length bv)) #!eof bv)))))
-    (case-lambda
-      ((k)
-       (read-u8vector/eof k ##sys#standard-input))
-      ((k port)
-       (read-u8vector/eof k port)))))
-
 (define read-bytevector!
   (let ((read-u8vector!/eof
          (lambda (k bv port . args)
@@ -845,7 +847,7 @@
        (read-u8vector!/eof (fx- end start) bv port start)))))
 
 (define (open-input-bytevector bv)
-  (let ((port (##sys#make-port #t #f "(bytevector)" 'custom)))
+  (let ((port (##sys#make-port 1 #f "(bytevector)" 'custom)))
     (##sys#setslot
      port
      2

@@ -1,11 +1,9 @@
 ;;;; compile-time support code (mostly for modules)
 
-
-(module r7rs-compile-time *
-
-(import scheme matchable)
-(import srfi-1 chicken.base chicken.syntax chicken.plist
-        chicken.pathname chicken.platform chicken.file)
+(import-syntax matchable)
+(import chicken.base chicken.file chicken.plist)
+(import chicken.syntax chicken.platform)
+(import srfi-1)
 (import r7rs-library r7rs-support)
 
 (define (locate-library name loc)		; must be stripped
@@ -56,29 +54,10 @@
     (else
      (syntax-error loc "invalid import/export specifier" spec))))
 
-(define (import-transformer type)
-  (wrap-er-macro-transformer
-   type
-   (lambda (x r c import)
-     `(##core#begin
-       ,@(map (lambda (spec)
-                (let ((spec (fixup-import/export-spec spec type))
-                      (name (import/export-spec-feature-name spec type)))
-                  (import (list type spec))
-                  (if (memq name '(scheme foreign)) ; XXX others?
-                      '(##core#undefined)
-                      `(##core#require-extension (,name) #f))))
-              (strip-syntax (cdr x)))))))
-
-(define (current-source-directory)
-  (cond (##sys#current-source-filename => pathname-directory)
-        (else #f)))
-
 (define (expand/begin e)
   (match (expand e '())
     (('##core#begin . rest)
-     (cons '##core#begin
-           (map expand/begin rest)))
+     (cons '##core#begin (map expand/begin rest)))
     (e* e*)))
 
 (define (expand-toplevel-r7rs-library-forms exps)
@@ -86,18 +65,16 @@
     (map expand/begin exps)))
 
 (define (read-forms filename ci?)
-  (let ((path (##sys#resolve-include-filename filename #t)))
-    (fluid-let ((##sys#default-read-info-hook
-                 (and (feature? 'compiling) ##compiler#read-info-hook))
-                (##sys#include-pathnames
-                 (cond ((pathname-directory path) =>
-                        (cut cons <> ##sys#include-pathnames))
-                       ((current-source-directory) =>
-                        (cut cons <> ##sys#include-pathnames))
-                       (else ##sys#include-pathnames))))
-      (expand-toplevel-r7rs-library-forms
-       (parameterize ((case-sensitive (not ci?)))
-         (##sys#include-forms-from-file path))))))
+  (fluid-let ((##sys#default-read-info-hook
+	       (let ((name 'chicken.compiler.support#read-info-hook))
+		 (and (feature? 'compiling)
+		      (##sys#symbol-has-toplevel-binding? name)
+		      (##sys#slot name 0)))))
+     (parameterize ((case-sensitive (not ci?)))
+       (##sys#include-forms-from-file
+	filename
+	##sys#current-source-filename
+	expand-toplevel-r7rs-library-forms))))
 
 (define implicit-r7rs-library-bindings
   '(begin
@@ -169,16 +146,17 @@
 	      ,@code
 	      ,(parse-decls more)))
 	   (decl (syntax-error 'define-library "invalid library declaration" decl))))
-       `(##core#module
-         ,real-name ((,dummy-export))
-         ;; gruesome hack: we add a dummy export for adding indirect exports
-         (##core#define-syntax ,dummy-export (##core#lambda _ '(##core#undefined)))
-         ;; Another gruesome hack: provide feature so "use" works properly
-         (##sys#provide (##core#quote ,real-name))
-         ;; Set up an R7RS environment for the module's body.
-         (import-for-syntax (only r7rs ,@implicit-r7rs-library-bindings))
-         (import (only r7rs ,@implicit-r7rs-library-bindings))
-         ,(parse-decls decls))))
+       `(##core#module ,real-name ((,dummy-export))
+	 ;; gruesome hack: we add a dummy export for adding indirect exports
+	 (##core#define-syntax ,dummy-export
+	  (##sys#er-transformer (##core#lambda (x r c) (##core#undefined))))
+	 ;; Another gruesome hack: provide feature so "use" works properly
+	 (##sys#provide (##core#quote ,real-name))
+	 ;; Set up an R7RS environment for the module's body.
+	 (import-for-syntax (only r7rs ,@implicit-r7rs-library-bindings))
+	 (import (only r7rs ,@implicit-r7rs-library-bindings))
+	 ;; Now process all toplevel library declarations
+	 ,(parse-decls decls))))
     (_ (syntax-error 'define-library "invalid library definition" form))))
 
 (define (register-r7rs-module name)
@@ -227,12 +205,6 @@
      (cons (r 'begin)
            (append-map (cut read-forms <> #t) (cdr e))))))
 
-(define r7rs-import
-  (import-transformer 'import))
-
-(define r7rs-import-for-syntax
-  (import-transformer 'import-for-syntax))
-
 ;; NOTE Not really "r7rs" -- just the core begin rewrapped in
 ;; a transformer. Used when expanding toplevel library forms.
 (define r7rs-begin
@@ -248,5 +220,3 @@
                              r7rs-include
                              r7rs-include-ci))))
           (##sys#macro-environment)))
-
-)

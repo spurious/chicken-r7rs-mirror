@@ -1,15 +1,16 @@
 (module r7rs (define-library import import-for-syntax export syntax-rules)
-
-  (import (except scheme syntax-rules))	;XXX except ...
-  (import (only chicken.platform feature? register-feature!))
+  (import (except scheme syntax-rules))
   (import (only chicken.base include))
-  (import chicken.module)
+  (import (only chicken.module export))
+  (import (only chicken.platform feature? register-feature!))
   (import (only chicken.syntax begin-for-syntax))
-  (import srfi-4)
 
   ;; For syntax definition helpers.
-  (import-for-syntax matchable)
+  (import-syntax-for-syntax matchable)
   (import-for-syntax r7rs-compile-time)
+
+  ;; For #u8(...) syntax.
+  (import srfi-4)
 
   ;; Reexport (scheme base).
   (import scheme.base)
@@ -47,13 +48,6 @@
 			   ((or (string-ci=? "f" str) (string-ci=? "false" str)) #f)
 			   (else (read-srfi-4-vector sym port)))))))
             (else (old-hook char port))))))
-
-;;;
-;;; 5.2. Import declarations
-;;;
-
-(define-syntax import r7rs-import)
-(define-syntax import-for-syntax r7rs-import-for-syntax)
 
 ;;;
 ;;; 5.4. Syntax definitions

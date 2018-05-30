@@ -4,9 +4,9 @@
 		      write-simple)
   (import (rename scheme (display display-simple) (write write-simple))
 	  (only chicken.base foldl when optional)
-          (only chicken.platform feature?)
-          (only chicken.type :)
-          (only chicken.fixnum fx+ fx= fx<=))
+	  (only chicken.platform feature?)
+	  (only chicken.type :)
+	  (only chicken.fixnum fx+ fx= fx<=))
 
   (when (feature? 'csi)
     (set! ##sys#repl-print-hook

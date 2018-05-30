@@ -5,17 +5,18 @@
  (dependencies matchable srfi-13)
  (test-dependencies test)
  (components
-   (extension r7rs 
+   (extension r7rs
      (component-dependencies r7rs-compile-time)
-     (source-dependencies "synrules.scm" 
-                          "scheme.base-interface.scm"))
+     (source-dependencies "synrules.scm" "scheme.base-interface.scm"))
    (extension r7rs-support)
    (extension r7rs-library)
    (extension r7rs-compile-time
+     (source "r7rs-compile-time-module.scm")
+     (source-dependencies "r7rs-compile-time.scm")
      (component-dependencies r7rs-library r7rs-support))
    (extension scheme.base
-     (source-dependencies "scheme.base-interface.scm")
      (types-file)
+     (source-dependencies "scheme.base-interface.scm")
      (component-dependencies r7rs-support r7rs-compile-time))
    (extension scheme.case-lambda (types-file))
    (extension scheme.char (types-file) (component-dependencies r7rs-support))
@@ -27,8 +28,7 @@
    (extension scheme.lazy (types-file))
    (extension scheme.load (types-file))
    (extension scheme.process-context (types-file))
-   (extension scheme.r5rs (types-file) 
-              (component-dependencies scheme.eval))
+   (extension scheme.r5rs (types-file) (component-dependencies scheme.eval))
    (extension scheme.read (types-file))
    (extension scheme.repl (types-file))
    (extension scheme.time (types-file))

@@ -98,6 +98,10 @@
    (define %temp (r 'temp))
    (define %syntax-error '##sys#syntax-error-hook)
    (define %ellipsis (r ellipsis))
+   (define %take-right (r 'chicken.internal.syntax-rules#take-right))
+   (define %drop-right (r 'chicken.internal.syntax-rules#drop-right))
+   (define %syntax-rules-mismatch
+     (r 'chicken.internal.syntax-rules#syntax-rules-mismatch))
 
    (define (ellipsis? x)
      (c x %ellipsis))
@@ -180,7 +184,7 @@
             (let* ((tail-length (length (cddr pattern)))
                    (%match (if (zero? tail-length) ; Simple segment?
                                path ; No list traversing overhead at runtime!
-                               `(##sys#drop-right ,path ,tail-length))))
+                               `(,%drop-right ,path ,tail-length))))
               (append
                (process-pattern (car pattern)
                                 %temp
@@ -191,7 +195,7 @@
                                        `(,%map1 (,%lambda (,%temp) ,x) ,%match))))
                                 #f el?)
                (process-pattern (cddr pattern)
-                                `(##sys#take-right ,path ,tail-length)
+                                `(,%take-right ,path ,tail-length)
                                 mapit #t el?))))
            ((pair? pattern)
             (append (process-pattern (car pattern) `(,%car ,path) mapit #f el?)

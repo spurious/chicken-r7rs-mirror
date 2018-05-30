@@ -1,3 +1,7 @@
-(module scheme.complex ()
-  (import scheme chicken.module)
-  (export angle magnitude make-polar make-rectangular imag-part real-part))
+(module scheme.complex (angle
+			magnitude
+			make-rectangular
+			make-polar
+			imag-part
+			real-part)
+  (import scheme))

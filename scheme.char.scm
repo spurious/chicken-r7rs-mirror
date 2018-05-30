@@ -7,8 +7,7 @@
 		     string-upcase string-downcase
 		     digit-value)
 
-(import chicken.base chicken.fixnum)
-(import (only chicken.type :))
+(import chicken.base chicken.fixnum chicken.type)
 (import r7rs-support)
 (import
   (except scheme

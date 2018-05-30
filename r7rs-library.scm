@@ -6,8 +6,8 @@
 ;;;
 
 (module r7rs-library *
-
-  (import scheme chicken.base matchable)
+  (import-syntax matchable)
+  (import scheme chicken.base)
   (import (only chicken.string string-intersperse))
   (import (only chicken.syntax syntax-error))
 

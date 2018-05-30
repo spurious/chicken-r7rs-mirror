@@ -1,18 +1,20 @@
-(use r7rs)
+(import (r7rs)
+        (chicken base)
+        (chicken io)
+        (chicken port)
+        (chicken string)
+        (test)
+        (scheme base)
+        (scheme char)
+        (scheme eval)
+        (scheme file)
+        (scheme read)
+        (scheme write))
 
 ;; XXX: This seems to be necessary in order to get the syntax-rules
 ;; from r7rs rather than the built-in CHICKEN one.  I'm not sure if
 ;; that's correct or not...
 (import-for-syntax (r7rs))
-
-(import (chicken)
-        (test)
-        (ports)
-        (scheme base)
-        (scheme char)
-        (scheme file)
-        (scheme read)
-        (scheme write))
 
 (define (read-from-string s)
   (with-input-from-string s read))
@@ -24,12 +26,12 @@
         '(FOO mooh qux blah foo BAR)
         (append
          (with-input-from-string
-          "FOO #!fold-case mooh QUX blah #!no-fold-case foo BAR" read-file)))
+          "FOO #!fold-case mooh QUX blah #!no-fold-case foo BAR" read-list)))
   (test "#!(no-)fold-case only affects subsequent reads from the same port"
         '(FOO bar baz downcased UPCASED)
         (append
-         (with-input-from-string "FOO #!fold-case bar BAZ" read-file)
-         (with-input-from-string "downcased UPCASED" read-file))))
+         (with-input-from-string "FOO #!fold-case bar BAZ" read-list)
+         (with-input-from-string "downcased UPCASED" read-list))))
 
 (test-group "4.1.7: Inclusion"
   (test-group "include"
@@ -539,8 +541,8 @@
 
 (test-group "6.10: Control features"
 
-  (define (1st . a) (first a))
-  (define (2nd . a) (second a))
+  (define (1st . a) (car a))
+  (define (2nd . a) (cadr a))
   (define (acc proc f . rest) ; accumulate results of `f`
     (let ((a '()))
       (apply proc (lambda args (set! a (cons (apply f args) a))) rest)
@@ -979,13 +981,6 @@
          ;; CHICKEN features!
          (test "DSSSL keyword arguments aren't renamed (not R7RS)"
                "hello, XXX" (bar who: "XXX")))))
-
-#+full-numeric-tower
-(test-group "define-library"
-  (test-assert "R7RS libraries use the numbers extension"
-               (define-library (foo)
-                 (import (scheme base))
-                 (begin (eq? numbers#+ +)))))
 
 (test-group "define-record-type"
   (define-record-type foo (make-foo) foo?)

@@ -22,5 +22,4 @@
 		    cddadr
 		    cdddar
 		    cddddr)
-  (import scheme)
-)
+  (import scheme))

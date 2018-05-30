@@ -10,9 +10,7 @@
 		     open-binary-output-file
 		     open-output-file
 		     with-output-to-file)
-
-  (import scheme)
-  (import (only chicken.type :))
+  (import scheme chicken.type)
   (import (rename (only chicken.file delete-file file-exists?)
 		  (file-exists? chicken-file-exists?)))
 

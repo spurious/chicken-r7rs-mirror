@@ -1,8 +1,6 @@
 (module scheme.load (load)
-  (import chicken.base
-          (only chicken.type :))
-  (import (rename scheme (load %load)
-			 (eval %eval)))
+  (import chicken.base chicken.type)
+  (import (rename scheme (load %load) (eval %eval)))
 
   (: load (string #!optional (struct environment) -> undefined))
 

@@ -3,7 +3,6 @@
 ;;;
 
 (module r7rs-support *
-
   (import scheme chicken.base chicken.syntax)
 
   (define (macro-handler name)

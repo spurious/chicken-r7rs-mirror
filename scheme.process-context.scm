@@ -3,53 +3,22 @@
 				exit
 				get-environment-variable
 				get-environment-variables)
-
-  (import scheme 
-	  (rename chicken.base (exit chicken-exit))
-          chicken.type
+  (import scheme
           chicken.process-context
-          (only chicken.fixnum fx+)
-	  chicken.foreign)
+          chicken.type
+	  (rename chicken.base (exit chicken-exit)))
 
 ;;;
 ;;; 6.14. System interface.
 ;;;
 
 (: command-line (-> (list-of string)))
-(: get-environment-variables (-> (list-of (pair string string))))
 (: exit (#!optional * -> noreturn))
 (: emergency-exit (#!optional * -> noreturn))
 
 (define (command-line)
   ;; Don't cache these; they may be parameterized at any time!
   (cons (program-name) (command-line-arguments)))
-
-;; XXX get-environment-variables copied from posixunix.scm.
-;; (And not actually expected to work on other platforms yet.)
-
-#>
-#ifdef __APPLE__
-# include <crt_externs.h>
-# define C_getenventry(i)       ((*_NSGetEnviron())[ i ])
-#else
-extern char **environ;
-# define C_getenventry(i)       (environ[ i ])
-#endif
-<#
-
-(define get-environment-variables
-  (let ([get (foreign-lambda c-string "C_getenventry" int)])
-    (lambda ()
-      (let loop ([i 0])
-        (let ([entry (get i)])
-          (if entry
-              (let scan ([j 0])
-                (if (char=? #\= (##core#inline "C_subchar" entry j))
-                    (cons (cons (##sys#substring entry 0 j)
-                                (##sys#substring entry (fx+ j 1) (##sys#size entry)))
-                          (loop (fx+ i 1)))
-                    (scan (fx+ j 1)) ) )
-              '()))))))
 
 (define (->exit-status obj)
   (cond ((integer? obj) obj)

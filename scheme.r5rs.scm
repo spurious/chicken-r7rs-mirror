@@ -1,26 +1,19 @@
 (module scheme.r5rs ()
-
-  (import
-   (rename scheme
-	   (null-environment %null-environment)
-	   (scheme-report-environment %scheme-report-environment)))
-  (import chicken.base chicken.module chicken.module 
-          chicken.syntax
-          (only chicken.type :))
+  (import (rename scheme
+                  (null-environment %null-environment)
+                  (scheme-report-environment %scheme-report-environment)))
+  (import chicken.base chicken.module chicken.syntax chicken.type)
   (import scheme.eval)
 
   (export angle make-polar make-rectangular rationalize)
   (export null-environment scheme-report-environment)
 
   (reexport
-   (except scheme
-	   null-environment scheme-report-environment eval
-	   and begin begin-for-syntax case cond cond-expand
-	   define define-syntax delay delay-force do export if
-	   import import-for-syntax lambda let let* let-syntax
-	   letrec letrec* letrec-syntax module or quasiquote quote
-	   reexport require-extension require-extension-for-syntax
-	   require-library set! syntax syntax-rules))
+    (except scheme
+            null-environment scheme-report-environment eval
+            and begin case cond define define-syntax delay do
+            if lambda let let* let-syntax letrec letrec-syntax
+            or quasiquote quote set! syntax-rules))
 
   (define-constant null-environment-identifiers
     '(and begin case cond cond-expand define define-syntax delay
